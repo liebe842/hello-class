@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import type { QuizTopic, Quiz, QuizAttempt } from '@/lib/types';
+import type { QuizTopic, QuizAttempt } from '@/lib/types';
 
 export default function StudentQuizTopicsPage() {
   const router = useRouter();

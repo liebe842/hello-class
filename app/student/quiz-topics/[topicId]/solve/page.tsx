@@ -13,7 +13,7 @@ import {
   query,
   where
 } from 'firebase/firestore';
-import type { QuizTopic, Quiz, QuizResult } from '@/lib/types';
+import type { QuizTopic, Quiz, } from '@/lib/types';
 
 export default function QuizSolvePage() {
   const params = useParams();
@@ -331,7 +331,6 @@ export default function QuizSolvePage() {
 
   // 문제 풀이 화면
   const isMultipleChoice = currentQuiz.type === 'multiple-choice';
-  const currentAnswer = answers[currentQuizIndex];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-400 to-pink-500 p-4">

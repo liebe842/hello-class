@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import {
@@ -19,7 +19,6 @@ import type { QuizTopic, Quiz, Student, QuizType } from '@/lib/types';
 
 export default function AdminQuizTopicDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const topicId = params.id as string;
 
   const [topic, setTopic] = useState<QuizTopic | null>(null);
@@ -98,6 +97,7 @@ export default function AdminQuizTopicDetailPage() {
     if (!topic) return;
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const quizData: any = {
         topicId,
         type: quizForm.type,

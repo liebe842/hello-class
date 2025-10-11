@@ -11,7 +11,6 @@ import {
   getDoc,
   addDoc,
   deleteDoc,
-  updateDoc,
   query,
   where
 } from 'firebase/firestore';
@@ -132,6 +131,7 @@ export default function StudentQuizTopicDetailPage() {
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const quizData: any = {
         topicId,
         type: quizForm.type,
