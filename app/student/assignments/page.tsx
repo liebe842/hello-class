@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Webcam from 'react-webcam';
 import { db, storage } from '@/lib/firebase';
 import {
@@ -304,7 +305,7 @@ export default function StudentAssignmentsPage() {
                   </div>
                 ) : (
                   <div>
-                    <img src={capturedImage} alt="촬영된 사진" className="w-full rounded-lg mb-3" />
+                    <Image src={capturedImage} alt="촬영된 사진" width={800} height={600} className="w-full rounded-lg mb-3" />
                     <button
                       type="button"
                       onClick={() => setCapturedImage(null)}

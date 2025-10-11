@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Webcam from 'react-webcam';
 import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, Timestamp } from 'firebase/firestore';
@@ -303,9 +304,11 @@ export default function StudentDashboardPage() {
                   .map((att) => (
                     <div key={att.id} className="flex items-center gap-3">
                       {att.photoUrl ? (
-                        <img
+                        <Image
                           src={att.photoUrl}
                           alt="출석 사진"
+                          width={64}
+                          height={64}
                           className="w-16 h-16 rounded-lg object-cover"
                         />
                       ) : (
@@ -461,7 +464,7 @@ export default function StudentDashboardPage() {
                 </div>
               ) : (
                 <div>
-                  <img src={capturedImage} alt="촬영된 사진" className="w-full rounded-xl mb-4" />
+                  <Image src={capturedImage} alt="촬영된 사진" width={800} height={600} className="w-full rounded-xl mb-4" />
                   <button
                     onClick={() => setCapturedImage(null)}
                     className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-xl font-semibold transition"

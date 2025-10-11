@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import type { Attendance, Student } from '@/lib/types';
@@ -199,9 +200,11 @@ export default function AttendanceDashboardPage() {
                     >
                       {/* 출석 사진 */}
                       {att.photoUrl ? (
-                        <img
+                        <Image
                           src={att.photoUrl}
                           alt={`${att.studentName} 출석 사진`}
+                          width={400}
+                          height={192}
                           className="w-full h-48 object-cover rounded-lg mb-3"
                         />
                       ) : (

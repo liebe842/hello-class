@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import type { Student, Attendance, EmotionType } from '@/lib/types';
@@ -214,9 +215,11 @@ export default function KioskAttendancePage() {
                     {isPresent ? (
                       // 출석한 학생
                       attendance.showPhoto ? (
-                        <img
+                        <Image
                           src={attendance.photoUrl}
                           alt={student.name}
+                          width={300}
+                          height={300}
                           className="w-full aspect-square object-cover rounded-xl"
                         />
                       ) : (

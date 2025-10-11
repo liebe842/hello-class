@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import type { Student, Assignment } from '@/lib/types';
@@ -258,9 +259,11 @@ export default function AdminAssignmentSubmissionsPage() {
                           </td>
                           <td className="px-6 py-4">
                             {submission?.imageUrl ? (
-                              <img
+                              <Image
                                 src={submission.imageUrl}
                                 alt="제출 사진"
+                                width={64}
+                                height={64}
                                 className="w-16 h-16 object-cover rounded cursor-pointer hover:opacity-80"
                                 onClick={() => setSelectedSubmission(submission)}
                               />
@@ -348,9 +351,11 @@ export default function AdminAssignmentSubmissionsPage() {
                 {selectedSubmission.imageUrl && (
                   <div className="mb-6">
                     <h4 className="font-semibold text-gray-700 mb-2">제출 사진</h4>
-                    <img
+                    <Image
                       src={selectedSubmission.imageUrl}
                       alt="제출 사진"
+                      width={800}
+                      height={600}
                       className="w-full rounded-lg"
                     />
                   </div>
