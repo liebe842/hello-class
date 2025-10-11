@@ -17,7 +17,7 @@ export default function StudentQuizTopicsPage() {
 
   // 로컬스토리지에서 학생 정보 가져오기
   const studentData = typeof window !== 'undefined'
-    ? JSON.parse(localStorage.getItem('studentData') || '{}')
+    ? JSON.parse(localStorage.getItem('studentSession') || '{}')
     : {};
 
   useEffect(() => {

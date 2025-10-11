@@ -41,7 +41,7 @@ export default function StudentQuizTopicDetailPage() {
 
   // 학생 정보
   const studentData = typeof window !== 'undefined'
-    ? JSON.parse(localStorage.getItem('studentData') || '{}')
+    ? JSON.parse(localStorage.getItem('studentSession') || '{}')
     : {};
 
   useEffect(() => {
