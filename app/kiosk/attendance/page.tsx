@@ -31,13 +31,21 @@ export default function KioskAttendancePage() {
       const today = new Date().toISOString().split('T')[0];
       const attendanceSnapshot = await getDocs(collection(db, 'attendance'));
       const attendanceData = attendanceSnapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          time: doc.data().time?.toDate(),
-          createdAt: doc.data().createdAt?.toDate(),
-        }))
-        .filter(att => att.date === today) as Attendance[];
+        .map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            studentId: data.studentId,
+            studentName: data.studentName,
+            date: data.date,
+            time: data.time?.toDate(),
+            emotion: data.emotion,
+            photoUrl: data.photoUrl,
+            showPhoto: data.showPhoto,
+            createdAt: data.createdAt?.toDate(),
+          } as Attendance;
+        })
+        .filter(att => att.date === today);
 
       setStudents(studentsData);
       setAttendanceData(attendanceData);
