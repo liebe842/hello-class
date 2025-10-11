@@ -20,7 +20,7 @@ export default function QuizSolvePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const topicId = params.topicId as string;
+  const topicId = params.id as string;
   const mode = searchParams.get('mode') as 'full' | 'random' | 'single';
   const quizId = searchParams.get('quizId');
 
