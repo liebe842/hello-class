@@ -252,6 +252,19 @@ export default function StudentDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* 퀴즈 주제 바로가기 */}
+          <Link href="/student/quiz-topics">
+            <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">🎯 퀴즈 주제</h3>
+              <p className="text-purple-100 text-sm mb-4">
+                문제를 만들고 친구들의 문제를 풀어보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                주제 보러가기 →
+              </div>
+            </div>
+          </Link>
+
           {/* 출석 현황 */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-xl font-bold mb-4 text-gray-800">📅 출석 현황</h3>
