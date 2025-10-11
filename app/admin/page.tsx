@@ -82,14 +82,16 @@ export default function AdminPage() {
             </div>
           </Link>
 
-          {/* AI 퀴즈 생성 카드 */}
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">🤖 AI 퀴즈</h2>
-            <p className="text-gray-600 mb-4">AI로 맞춤형 퀴즈를 생성합니다.</p>
-            <button className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 rounded-lg transition">
-              퀴즈 생성하기
-            </button>
-          </div>
+          {/* 퀴즈 주제 관리 카드 */}
+          <Link href="/admin/quiz-topics">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">🎯 퀴즈 주제 관리</h2>
+              <p className="text-gray-600 mb-4">학생들이 퀴즈를 만들 주제를 관리합니다.</p>
+              <div className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 rounded-lg transition text-center">
+                주제 관리하기
+              </div>
+            </div>
+          </Link>
 
           {/* AI 분석 리포트 카드 */}
           <div className="bg-white rounded-xl shadow-md p-6">
