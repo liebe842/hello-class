@@ -39,8 +39,8 @@ export default function StudentsManagePage() {
       });
 
       setStudents(studentsData);
-    } catch (error) {
-      console.error('학생 목록 불러오기 실패:', error);
+    } catch (err) {
+      console.error('학생 목록 불러오기 실패:', err);
     }
   };
 
@@ -60,8 +60,8 @@ export default function StudentsManagePage() {
       setShowAddModal(false);
       setFormData({ name: '', grade: 5, class: 3, number: 1, password: '' });
       fetchStudents();
-    } catch (error) {
-      console.error('학생 등록 실패:', error);
+    } catch (err) {
+      console.error('학생 등록 실패:', err);
       alert('학생 등록에 실패했습니다.');
     }
   };
@@ -91,7 +91,7 @@ export default function StudentsManagePage() {
             if (storagePath) {
               try {
                 await deleteObject(ref(storage, storagePath));
-              } catch (error) {
+              } catch {
                 console.log('파일 삭제 실패 (파일이 없을 수 있음):', storagePath);
               }
             }
@@ -109,7 +109,7 @@ export default function StudentsManagePage() {
             if (storagePath) {
               try {
                 await deleteObject(ref(storage, storagePath));
-              } catch (error) {
+              } catch {
                 console.log('파일 삭제 실패 (파일이 없을 수 있음):', storagePath);
               }
             }
@@ -134,8 +134,8 @@ export default function StudentsManagePage() {
 
         alert('학생이 삭제되었습니다.');
         fetchStudents();
-      } catch (error) {
-        console.error('학생 삭제 실패:', error);
+      } catch (err) {
+        console.error('학생 삭제 실패:', err);
         alert('학생 삭제에 실패했습니다.');
       }
     }
@@ -180,7 +180,7 @@ export default function StudentsManagePage() {
               if (storagePath) {
                 try {
                   await deleteObject(ref(storage, storagePath));
-                } catch (error) {
+                } catch {
                   console.log('파일 삭제 실패 (파일이 없을 수 있음):', storagePath);
                 }
               }
@@ -198,7 +198,7 @@ export default function StudentsManagePage() {
               if (storagePath) {
                 try {
                   await deleteObject(ref(storage, storagePath));
-                } catch (error) {
+                } catch {
                   console.log('파일 삭제 실패 (파일이 없을 수 있음):', storagePath);
                 }
               }
@@ -226,8 +226,8 @@ export default function StudentsManagePage() {
         alert(`${selectedStudents.length}명의 학생이 삭제되었습니다.`);
         setSelectedStudents([]);
         fetchStudents();
-      } catch (error) {
-        console.error('일괄 삭제 실패:', error);
+      } catch (err) {
+        console.error('일괄 삭제 실패:', err);
         alert('학생 삭제에 실패했습니다.');
       }
     }
@@ -281,8 +281,8 @@ export default function StudentsManagePage() {
       setShowBulkUploadModal(false);
       setCsvData([]);
       fetchStudents();
-    } catch (error) {
-      console.error('일괄 등록 실패:', error);
+    } catch (err) {
+      console.error('일괄 등록 실패:', err);
       alert('일괄 등록에 실패했습니다.');
     }
   };
