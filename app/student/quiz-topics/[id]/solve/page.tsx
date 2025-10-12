@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -10,10 +11,12 @@ import {
   doc,
   getDoc,
   addDoc,
+  updateDoc,
+  increment,
   query,
   where
 } from 'firebase/firestore';
-import type { QuizTopic, Quiz, } from '@/lib/types';
+import type { QuizTopic, Quiz } from '@/lib/types';
 
 export default function QuizSolvePage() {
   const params = useParams();
@@ -33,6 +36,8 @@ export default function QuizSolvePage() {
   const [startTime, setStartTime] = useState(Date.now());
   const [showFinalResult, setShowFinalResult] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
 
   // 학생 정보
   const studentData = typeof window !== 'undefined'
@@ -187,6 +192,36 @@ export default function QuizSolvePage() {
     }
 
     setShowFinalResult(true);
+  };
+
+  const handleReport = async () => {
+    if (!reportReason.trim()) {
+      alert('신고 사유를 입력해주세요.');
+      return;
+    }
+
+    try {
+      // 신고 기록 저장
+      await addDoc(collection(db, 'quizReports'), {
+        quizId: currentQuiz.id,
+        reportedBy: studentData.id,
+        reportedByName: studentData.name,
+        reason: reportReason,
+        reportedAt: new Date(),
+      });
+
+      // 퀴즈의 reportCount 증가
+      await updateDoc(doc(db, 'quizzes', currentQuiz.id), {
+        reportCount: increment(1),
+      });
+
+      alert('신고가 접수되었습니다. 선생님이 확인할 예정입니다.');
+      setShowReportModal(false);
+      setReportReason('');
+    } catch (err) {
+      console.error('신고 실패:', err);
+      alert('신고 처리에 실패했습니다.');
+    }
   };
 
   const currentQuiz = quizzes[currentQuizIndex];
@@ -383,6 +418,19 @@ export default function QuizSolvePage() {
             <p className="text-lg text-gray-700 leading-relaxed">
               {currentQuiz.question}
             </p>
+
+            {/* 이미지 표시 */}
+            {currentQuiz.imageUrl && (
+              <div className="mt-4">
+                <Image
+                  src={currentQuiz.imageUrl}
+                  alt="Quiz image"
+                  width={600}
+                  height={400}
+                  className="w-full max-h-96 object-contain bg-gray-100 rounded-lg"
+                />
+              </div>
+            )}
           </div>
 
           {/* 선택지 */}
@@ -507,6 +555,12 @@ export default function QuizSolvePage() {
                   나가기
                 </Link>
                 <button
+                  onClick={() => setShowReportModal(true)}
+                  className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition"
+                >
+                  🚨 신고
+                </button>
+                <button
                   onClick={handleSubmitAnswer}
                   disabled={selectedAnswer === null}
                   className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -515,16 +569,72 @@ export default function QuizSolvePage() {
                 </button>
               </>
             ) : (
-              <button
-                onClick={handleNext}
-                className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition"
-              >
-                {currentQuizIndex < quizzes.length - 1 ? '다음 문제 →' : '결과 보기'}
-              </button>
+              <>
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition"
+                >
+                  🚨 신고
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition"
+                >
+                  {currentQuizIndex < quizzes.length - 1 ? '다음 문제 →' : '결과 보기'}
+                </button>
+              </>
             )}
           </div>
         </div>
       </div>
+
+      {/* 신고 모달 */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+            <h3 className="text-2xl font-bold mb-4 text-gray-800">문제 신고하기</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              이 문제에 문제가 있나요? 신고 사유를 자세히 적어주세요.
+            </p>
+
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                신고 사유 *
+              </label>
+              <textarea
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 h-32"
+                placeholder="예: 정답이 잘못되었습니다. 또는 문제가 부적절합니다."
+              />
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 mb-4 rounded">
+              <p className="text-xs text-yellow-700">
+                💡 자주 사용하는 신고 사유: 정답 오류, 부적절한 내용, 문제 오타, 이해하기 어려운 문제
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowReportModal(false);
+                  setReportReason('');
+                }}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg transition"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleReport}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition"
+              >
+                신고하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

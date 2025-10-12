@@ -1,20 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { db } from '@/lib/firebase';
+import Image from 'next/image';
+import imageCompression from 'browser-image-compression';
+import { db, storage } from '@/lib/firebase';
 import {
   collection,
   getDocs,
   doc,
   getDoc,
   addDoc,
+  updateDoc,
   deleteDoc,
   query,
   where
 } from 'firebase/firestore';
-import type { QuizTopic, Quiz, QuizType, QuizAttempt } from '@/lib/types';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import type { QuizTopic, Quiz, QuizType, QuizAttempt, QuizResult } from '@/lib/types';
 
 export default function StudentQuizTopicDetailPage() {
   const params = useParams();
@@ -28,6 +32,10 @@ export default function StudentQuizTopicDetailPage() {
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [myBestAttempt, setMyBestAttempt] = useState<QuizAttempt | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [quizForm, setQuizForm] = useState({
     type: 'multiple-choice' as QuizType,
@@ -120,9 +128,119 @@ export default function StudentQuizTopicDetailPage() {
     }
   };
 
+  // 이미지 파일 처리 (공통 함수)
+  const processImageFile = async (file: File) => {
+    // 파일 타입 체크
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드할 수 있습니다.');
+      return;
+    }
+
+    // 파일 크기 체크 (5MB 제한)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+
+    try {
+      // 이미지 압축 옵션
+      const options = {
+        maxSizeMB: 1, // 최대 1MB
+        maxWidthOrHeight: 1920, // 최대 1920px
+        useWebWorker: true,
+        fileType: file.type,
+      };
+
+      // 이미지 압축
+      const compressedFile = await imageCompression(file, options);
+
+      console.log('원본 크기:', (file.size / 1024).toFixed(2), 'KB');
+      console.log('압축 후 크기:', (compressedFile.size / 1024).toFixed(2), 'KB');
+
+      setImageFile(compressedFile);
+
+      // 미리보기 생성
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error('이미지 압축 실패:', error);
+      alert('이미지 처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 이미지 파일 선택 핸들러
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  // 드래그 앤 드롭 핸들러
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  // 클립보드 붙여넣기 핸들러
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      // 이미지 아이템 찾기
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          processImageFile(file);
+          e.preventDefault(); // 기본 붙여넣기 동작 방지
+        }
+        break;
+      }
+    }
+  };
+
+  // 이미지 제거
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // 이미지 업로드 함수
+  const uploadImage = async (file: File): Promise<string> => {
+    const timestamp = Date.now();
+    const fileName = `quiz-images/${topicId}/${studentData.id}_${timestamp}_${file.name}`;
+    const storageRef = ref(storage, fileName);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  };
+
   const handleCreateQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic) return;
+
+    // 수정 모드인지 확인
+    if (editingQuiz) {
+      await handleUpdateQuiz();
+      return;
+    }
 
     // 최대 출제 개수 체크
     if (myQuizzes.length >= topic.maxQuizzesPerStudent) {
@@ -131,6 +249,12 @@ export default function StudentQuizTopicDetailPage() {
     }
 
     try {
+      // 이미지 업로드 (있는 경우)
+      let imageUrl = '';
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const quizData: any = {
         topicId,
@@ -145,6 +269,10 @@ export default function StudentQuizTopicDetailPage() {
         isVerified: false,
         reportCount: 0,
       };
+
+      if (imageUrl) {
+        quizData.imageUrl = imageUrl;
+      }
 
       if (quizForm.type === 'multiple-choice') {
         quizData.options = quizForm.options;
@@ -162,6 +290,86 @@ export default function StudentQuizTopicDetailPage() {
       console.error('퀴즈 생성 실패:', err);
       alert('퀴즈 생성에 실패했습니다.');
     }
+  };
+
+  // 퀴즈 수정 핸들러
+  const handleUpdateQuiz = async () => {
+    if (!editingQuiz || !topic) return;
+
+    // 이미 다른 학생이 풀었는지 확인
+    const resultsQ = query(
+      collection(db, 'quizResults'),
+      where('quizId', '==', editingQuiz.id)
+    );
+    const resultsSnap = await getDocs(resultsQ);
+    const otherStudentsSolved = resultsSnap.docs.some(
+      d => d.data().studentId !== studentData.id
+    );
+
+    if (otherStudentsSolved) {
+      if (!confirm('이미 다른 학생이 이 문제를 풀었습니다. 그래도 수정하시겠습니까?')) {
+        return;
+      }
+    }
+
+    try {
+      // 이미지 업로드 (새 파일이 있는 경우)
+      let imageUrl = editingQuiz.imageUrl || '';
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const quizData: any = {
+        type: quizForm.type,
+        question: quizForm.question,
+        explanation: quizForm.explanation,
+        difficulty: quizForm.difficulty,
+      };
+
+      if (imageUrl) {
+        quizData.imageUrl = imageUrl;
+      } else {
+        // 이미지가 제거된 경우
+        quizData.imageUrl = null;
+      }
+
+      if (quizForm.type === 'multiple-choice') {
+        quizData.options = quizForm.options;
+        quizData.correctAnswer = quizForm.correctAnswer;
+        quizData.correctBoolean = null;
+      } else {
+        quizData.correctBoolean = quizForm.correctBoolean;
+        quizData.options = null;
+        quizData.correctAnswer = null;
+      }
+
+      await updateDoc(doc(db, 'quizzes', editingQuiz.id), quizData);
+      alert('퀴즈가 수정되었습니다! ✏️');
+      setShowQuizModal(false);
+      setEditingQuiz(null);
+      resetQuizForm();
+      fetchQuizzes();
+    } catch (err) {
+      console.error('퀴즈 수정 실패:', err);
+      alert('퀴즈 수정에 실패했습니다.');
+    }
+  };
+
+  // 수정 버튼 클릭
+  const handleEditQuiz = (quiz: Quiz) => {
+    setEditingQuiz(quiz);
+    setQuizForm({
+      type: quiz.type,
+      question: quiz.question,
+      options: quiz.options || ['', '', '', ''],
+      correctAnswer: quiz.correctAnswer || 0,
+      correctBoolean: quiz.correctBoolean ?? true,
+      explanation: quiz.explanation,
+      difficulty: quiz.difficulty,
+    });
+    setImagePreview(quiz.imageUrl || null);
+    setShowQuizModal(true);
   };
 
   const handleDeleteMyQuiz = async (quizId: string) => {
@@ -187,6 +395,12 @@ export default function StudentQuizTopicDetailPage() {
       explanation: '',
       difficulty: 'medium',
     });
+    setEditingQuiz(null);
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const getDifficultyBadge = (difficulty: string) => {
@@ -201,6 +415,11 @@ export default function StudentQuizTopicDetailPage() {
   };
 
   const startFullChallenge = () => {
+    if (myQuizzes.length === 0) {
+      alert('먼저 퀴즈를 만들어야 다른 친구들의 퀴즈를 풀 수 있어요!');
+      setActiveTab('create');
+      return;
+    }
     if (quizzes.length === 0) {
       alert('아직 풀 수 있는 퀴즈가 없습니다.');
       return;
@@ -209,6 +428,11 @@ export default function StudentQuizTopicDetailPage() {
   };
 
   const startRandomChallenge = () => {
+    if (myQuizzes.length === 0) {
+      alert('먼저 퀴즈를 만들어야 다른 친구들의 퀴즈를 풀 수 있어요!');
+      setActiveTab('create');
+      return;
+    }
     if (quizzes.length === 0) {
       alert('아직 풀 수 있는 퀴즈가 없습니다.');
       return;
@@ -311,10 +535,37 @@ export default function StudentQuizTopicDetailPage() {
             {/* 퀴즈 풀기 탭 */}
             {activeTab === 'solve' && (
               <div>
+                {/* 퀴즈 제작 필수 안내 */}
+                {myQuizzes.length === 0 && (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 mb-6 rounded">
+                    <div className="flex items-start">
+                      <div className="text-3xl mr-4">⚠️</div>
+                      <div>
+                        <h4 className="text-lg font-bold text-yellow-800 mb-2">
+                          먼저 퀴즈를 만들어주세요!
+                        </h4>
+                        <p className="text-sm text-yellow-700 mb-3">
+                          다른 친구들의 퀴즈를 풀기 전에, 먼저 퀴즈를 만들어야 해요.
+                          <br />
+                          위에 있는 <strong>"✏️ 퀴즈 만들기"</strong> 탭을 클릭해서 퀴즈를 만들어보세요!
+                        </p>
+                        <button
+                          onClick={() => setActiveTab('create')}
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-4 py-2 rounded-lg text-sm transition"
+                        >
+                          퀴즈 만들러 가기 →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 도전 모드 선택 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                   {/* 전체 도전 */}
-                  <div className="border-2 border-purple-200 rounded-xl p-6 hover:shadow-lg transition">
+                  <div className={`border-2 rounded-xl p-6 transition ${
+                    myQuizzes.length === 0 ? 'border-gray-200 opacity-50' : 'border-purple-200 hover:shadow-lg'
+                  }`}>
                     <div className="text-3xl mb-3">🎯</div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">전체 도전</h3>
                     <p className="text-gray-600 text-sm mb-4">
@@ -334,15 +585,22 @@ export default function StudentQuizTopicDetailPage() {
                     )}
                     <button
                       onClick={startFullChallenge}
-                      disabled={quizzes.length === 0}
+                      disabled={myQuizzes.length === 0 || quizzes.length === 0}
                       className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {myBestAttempt ? '다시 도전하기' : '도전하기'}
                     </button>
+                    {myQuizzes.length === 0 && (
+                      <p className="text-xs text-center text-gray-500 mt-2">
+                        퀴즈를 만들면 풀 수 있어요
+                      </p>
+                    )}
                   </div>
 
                   {/* 랜덤 도전 */}
-                  <div className="border-2 border-blue-200 rounded-xl p-6 hover:shadow-lg transition">
+                  <div className={`border-2 rounded-xl p-6 transition ${
+                    myQuizzes.length === 0 ? 'border-gray-200 opacity-50' : 'border-blue-200 hover:shadow-lg'
+                  }`}>
                     <div className="text-3xl mb-3">🎲</div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">랜덤 도전</h3>
                     <p className="text-gray-600 text-sm mb-4">
@@ -358,11 +616,16 @@ export default function StudentQuizTopicDetailPage() {
                     </div>
                     <button
                       onClick={startRandomChallenge}
-                      disabled={quizzes.length < 10}
+                      disabled={myQuizzes.length === 0 || quizzes.length < 10}
                       className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       랜덤 도전하기
                     </button>
+                    {myQuizzes.length === 0 && (
+                      <p className="text-xs text-center text-gray-500 mt-2">
+                        퀴즈를 만들면 풀 수 있어요
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -380,7 +643,9 @@ export default function StudentQuizTopicDetailPage() {
                       {quizzes.map((quiz, index) => (
                         <div
                           key={quiz.id}
-                          className="border rounded-lg p-4 hover:bg-gray-50 transition"
+                          className={`border rounded-lg p-4 transition ${
+                            myQuizzes.length === 0 ? 'opacity-50' : 'hover:bg-gray-50'
+                          }`}
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
@@ -410,7 +675,8 @@ export default function StudentQuizTopicDetailPage() {
                             </div>
                             <button
                               onClick={() => router.push(`/student/quiz-topics/${topicId}/solve?mode=single&quizId=${quiz.id}`)}
-                              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm transition"
+                              disabled={myQuizzes.length === 0}
+                              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               풀기
                             </button>
@@ -510,12 +776,20 @@ export default function StudentQuizTopicDetailPage() {
                                 } | {quiz.explanation}
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleDeleteMyQuiz(quiz.id)}
-                              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm transition"
-                            >
-                              삭제
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEditQuiz(quiz)}
+                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition"
+                              >
+                                수정
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMyQuiz(quiz.id)}
+                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm transition"
+                              >
+                                삭제
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -528,13 +802,68 @@ export default function StudentQuizTopicDetailPage() {
         </div>
       </main>
 
-      {/* 퀴즈 생성 모달 */}
+      {/* 퀴즈 생성/수정 모달 */}
       {showQuizModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-2xl font-bold mb-6 text-gray-800">새 퀴즈 만들기</h3>
+            <h3 className="text-2xl font-bold mb-6 text-gray-800">
+              {editingQuiz ? '퀴즈 수정하기' : '새 퀴즈 만들기'}
+            </h3>
             <form onSubmit={handleCreateQuiz}>
               <div className="space-y-4">
+                {/* 이미지 업로드 */}
+                <div
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onPaste={handlePaste}
+                  tabIndex={0}
+                  className="outline-none"
+                >
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    이미지 (선택사항)
+                  </label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  {imagePreview ? (
+                    <div className="relative">
+                      <Image
+                        src={imagePreview}
+                        alt="Quiz image preview"
+                        width={400}
+                        height={300}
+                        className="w-full h-64 object-contain bg-gray-100 rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm"
+                      >
+                        제거
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-gray-300 hover:border-purple-400 hover:bg-purple-50 rounded-lg p-8 text-center transition cursor-pointer"
+                    >
+                      <div className="text-4xl mb-2">📷</div>
+                      <div className="text-sm text-gray-700 font-semibold mb-2">
+                        이미지 업로드 (최대 5MB)
+                      </div>
+                      <div className="text-xs text-gray-500 space-y-1">
+                        <div>• 클릭해서 파일 선택</div>
+                        <div>• 드래그 앤 드롭</div>
+                        <div>• 캡처 후 Ctrl+V로 붙여넣기</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* 퀴즈 유형 */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -731,7 +1060,7 @@ export default function StudentQuizTopicDetailPage() {
                   type="submit"
                   className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition"
                 >
-                  만들기
+                  {editingQuiz ? '수정하기' : '만들기'}
                 </button>
               </div>
             </form>

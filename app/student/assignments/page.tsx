@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import Webcam from 'react-webcam';
+import imageCompression from 'browser-image-compression';
 import { db, storage } from '@/lib/firebase';
 import {
   collection,
@@ -16,7 +16,7 @@ import {
   doc,
   Timestamp
 } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Student, Assignment } from '@/lib/types';
 
 interface AssignmentSubmission {
@@ -35,7 +35,7 @@ interface AssignmentSubmission {
 
 export default function StudentAssignmentsPage() {
   const router = useRouter();
-  const webcamRef = useRef<Webcam>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [student, setStudent] = useState<Student | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -45,7 +45,8 @@ export default function StudentAssignmentsPage() {
   // 제출 모달 상태
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [linkUrl, setLinkUrl] = useState('');
   const [note, setNote] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -103,17 +104,89 @@ export default function StudentAssignmentsPage() {
     setSelectedAssignment(assignment);
     const existing = submissions[assignment.id];
     if (existing) {
-      setCapturedImage(existing.imageUrl || null);
+      setImagePreview(existing.imageUrl || null);
       setLinkUrl(existing.linkUrl || '');
       setNote(existing.note || '');
     }
     setShowSubmitModal(true);
   };
 
-  const capturePhoto = () => {
-    const imageSrc = webcamRef.current?.getScreenshot();
-    if (imageSrc) {
-      setCapturedImage(imageSrc);
+  // 이미지 파일 처리 (공통 함수)
+  const processImageFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드할 수 있습니다.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+
+    try {
+      // 이미지 압축 옵션
+      const options = {
+        maxSizeMB: 1, // 최대 1MB
+        maxWidthOrHeight: 1920, // 최대 1920px
+        useWebWorker: true,
+        fileType: file.type,
+      };
+
+      // 이미지 압축
+      const compressedFile = await imageCompression(file, options);
+
+      console.log('원본 크기:', (file.size / 1024).toFixed(2), 'KB');
+      console.log('압축 후 크기:', (compressedFile.size / 1024).toFixed(2), 'KB');
+
+      setImageFile(compressedFile);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error('이미지 압축 실패:', error);
+      alert('이미지 처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 파일 선택 핸들러
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  // 드래그 오버 핸들러
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // 드롭 핸들러
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  // Ctrl+V 붙여넣기 핸들러
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          processImageFile(file);
+          e.preventDefault();
+        }
+        break;
+      }
     }
   };
 
@@ -125,16 +198,14 @@ export default function StudentAssignmentsPage() {
       const now = new Date();
       const isLate = now > selectedAssignment.dueDate;
 
-      let imageUrl = capturedImage || '';
+      let imageUrl = imagePreview || '';
 
-      // 이미지 업로드 (있는 경우)
-      if (capturedImage && capturedImage.startsWith('data:')) {
+      // 이미지 업로드 (새 파일이 있는 경우)
+      if (imageFile) {
         const timestamp = Date.now();
-        const storageRef = ref(
-          storage,
-          `assignments/${selectedAssignment.id}/${student.id}_${timestamp}.jpg`
-        );
-        await uploadString(storageRef, capturedImage, 'data_url');
+        const fileName = `assignments/${selectedAssignment.id}/${student.id}_${timestamp}_${imageFile.name}`;
+        const storageRef = ref(storage, fileName);
+        await uploadBytes(storageRef, imageFile);
         imageUrl = await getDownloadURL(storageRef);
       }
 
@@ -163,7 +234,8 @@ export default function StudentAssignmentsPage() {
 
       alert('과제가 제출되었습니다!');
       setShowSubmitModal(false);
-      setCapturedImage(null);
+      setImageFile(null);
+      setImagePreview(null);
       setLinkUrl('');
       setNote('');
 
@@ -282,68 +354,106 @@ export default function StudentAssignmentsPage() {
             </h3>
 
             <div className="space-y-6">
-              {/* 사진 업로드 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  📸 과제물 사진 (선택)
-                </label>
-                {!capturedImage ? (
-                  <div>
-                    <Webcam
-                      ref={webcamRef}
-                      audio={false}
-                      screenshotFormat="image/jpeg"
-                      className="w-full rounded-lg mb-3"
-                    />
-                    <button
-                      type="button"
-                      onClick={capturePhoto}
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg"
-                    >
-                      📷 사진 촬영
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <Image src={capturedImage} alt="촬영된 사진" width={800} height={600} className="w-full rounded-lg mb-3" />
-                    <button
-                      type="button"
-                      onClick={() => setCapturedImage(null)}
-                      className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
-                    >
-                      다시 촬영
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* 체크만 하는 과제 안내 */}
+              {selectedAssignment && selectedAssignment.submissionType === 'none' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                  <div className="text-4xl mb-3">✅</div>
+                  <p className="text-lg font-semibold text-gray-800 mb-2">
+                    확인 제출 과제입니다
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    별도의 파일이나 내용 제출 없이 "제출하기" 버튼만 클릭하면 완료됩니다.
+                  </p>
+                </div>
+              )}
 
-              {/* 링크 입력 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  🔗 링크 (선택)
-                </label>
-                <input
-                  type="url"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900"
-                  placeholder="https://..."
-                />
-              </div>
+              {/* 사진 업로드 (제출 방식에 따라 표시) */}
+              {selectedAssignment && (selectedAssignment.submissionType === 'image' || selectedAssignment.submissionType === 'all') && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    📸 과제물 이미지 {selectedAssignment.submissionType === 'image' ? '*' : '(선택)'}
+                  </label>
+                  {!imagePreview ? (
+                    <div
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onPaste={handlePaste}
+                      tabIndex={0}
+                      className="outline-none"
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full border-2 border-dashed border-gray-300 hover:border-purple-400 hover:bg-purple-50 rounded-lg p-8 text-center transition cursor-pointer"
+                      >
+                        <div className="text-4xl mb-2">📷</div>
+                        <div className="text-sm text-gray-700 font-semibold mb-2">
+                          이미지 업로드 (최대 5MB)
+                        </div>
+                        <div className="text-xs text-gray-500 space-y-1">
+                          <div>• 클릭해서 파일 선택</div>
+                          <div>• 드래그 앤 드롭</div>
+                          <div>• 캡처 후 Ctrl+V로 붙여넣기</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <Image src={imagePreview} alt="업로드된 이미지" width={800} height={600} className="w-full rounded-lg mb-3 object-contain max-h-96 bg-gray-100" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview(null);
+                        }}
+                        className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
+                      >
+                        다시 선택
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {/* 메모 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  📝 메모 (선택)
-                </label>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900"
-                  rows={3}
-                  placeholder="메모를 입력하세요..."
-                />
-              </div>
+              {/* 링크 입력 (제출 방식에 따라 표시) */}
+              {selectedAssignment && (selectedAssignment.submissionType === 'link' || selectedAssignment.submissionType === 'all') && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    🔗 링크 {selectedAssignment.submissionType === 'link' ? '*' : '(선택)'}
+                  </label>
+                  <input
+                    type="url"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    placeholder="https://..."
+                    required={selectedAssignment.submissionType === 'link'}
+                  />
+                </div>
+              )}
+
+              {/* 메모 (제출 방식에 따라 표시) */}
+              {selectedAssignment && (selectedAssignment.submissionType === 'note' || selectedAssignment.submissionType === 'all') && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    📝 메모 {selectedAssignment.submissionType === 'note' ? '*' : '(선택)'}
+                  </label>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    rows={3}
+                    placeholder="메모를 입력하세요..."
+                    required={selectedAssignment.submissionType === 'note'}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 mt-6">

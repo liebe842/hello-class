@@ -92,6 +92,16 @@ export default function AdminPage() {
               </div>
             </div>
           </Link>
+          {/* 퀴즈 통계 카드 */}
+          <Link href="/admin/quiz-statistics">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">📊 퀴즈 통계</h2>
+              <p className="text-gray-600 mb-4">학급 전체 퀴즈 활동 현황을 확인합니다.</p>
+              <div className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition text-center">
+                통계 보기
+              </div>
+            </div>
+          </Link>
 
           {/* AI 분석 리포트 카드 */}
           <div className="bg-white rounded-xl shadow-md p-6">

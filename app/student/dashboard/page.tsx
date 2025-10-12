@@ -264,6 +264,54 @@ export default function StudentDashboardPage() {
               </div>
             </div>
           </Link>
+          {/* 리더보드 바로가기 */}
+          <Link href="/student/leaderboard">
+            <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">🏆 리더보드</h3>
+              <p className="text-yellow-100 text-sm mb-4">
+                우리 반 최고는 누구? 순위를 확인해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                순위 보러가기 →
+              </div>
+            </div>
+          </Link>
+          {/* 내 통계 바로가기 */}
+          <Link href="/student/statistics">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">📊 내 통계</h3>
+              <p className="text-blue-100 text-sm mb-4">
+                내 학습 기록과 성적을 확인해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                통계 보러가기 →
+              </div>
+            </div>
+          </Link>
+          {/* 배지 컬렉션 바로가기 */}
+          <Link href="/student/badges">
+            <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">🏅 배지 컬렉션</h3>
+              <p className="text-yellow-100 text-sm mb-4">
+                획득한 배지를 확인하고 새로운 목표에 도전하세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                배지 보러가기 →
+              </div>
+            </div>
+          </Link>
+          {/* 과제 바로가기 */}
+          <Link href="/student/assignments">
+            <div className="bg-gradient-to-br from-green-500 to-teal-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">📝 과제</h3>
+              <p className="text-green-100 text-sm mb-4">
+                과제를 확인하고 제출해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                과제 보러가기 →
+              </div>
+            </div>
+          </Link>
 
           {/* 출석 현황 */}
           <div className="bg-white rounded-xl shadow-md p-6">
