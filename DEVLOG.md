@@ -944,7 +944,256 @@ const options = {
 ✅ 이미지 업로드 (드래그앤드롭, Ctrl+V, 압축)
 
 ### 다음 계획
-🔜 학교 공지 시스템
+🔜 알림 시스템 (과제 마감 임박, 새 퀴즈 등)
+🔜 교사 대시보드 개선
+🔜 학생 프로필 페이지
+
+---
+
+## 🆕 Phase 5: 학교 공지 시스템
+
+### 5.1 학사일정 관리
+**의도**:
+- 학교 행사, 시험 일정 등을 학생들에게 공지
+- CSV 일괄 업로드로 관리자 편의성 향상
+- 기간이 있는 일정도 지원 (예: 중간고사 5/15~5/19)
+
+**구현 방법**:
+- **데이터 구조**:
+  - `startDate`: 시작일 (YYYY-MM-DD)
+  - `endDate`: 종료일 (선택사항, 기간이 있는 경우)
+  - `eventName`: 행사명
+
+- **관리자 기능**:
+  - 개별 추가: 날짜 선택 + 행사명 입력
+  - CSV 일괄 업로드: `startDate,endDate,eventName` 형식
+  - CSV 템플릿 다운로드 (헤더만)
+  - 수정/삭제 (인라인 편집)
+  - 전체 선택 및 일괄 삭제
+
+- **학생 화면**:
+  - 월별로 그룹화하여 표시
+  - 오늘/미래/과거 일정 색상 구분
+  - 기간 일정은 "YYYY-MM-DD ~ YYYY-MM-DD" 형식
+  - 진행 중인 일정은 "🔔 진행 중" 표시
+
+**파일**:
+- `lib/types.ts` - SchoolSchedule 인터페이스
+- `app/admin/school-schedule/page.tsx` - 관리자 일정 관리
+- `app/student/school-schedule/page.tsx` - 학생 일정 조회
+
+**CSV 형식 예시**:
+```csv
+startDate,endDate,eventName
+2025-03-02,,개학식
+2025-05-15,2025-05-19,중간고사
+2025-07-20,,여름방학
+```
+
+---
+
+### 5.2 시간표 관리
+**의도**:
+- 주간 시간표를 등록하여 학생들이 오늘의 수업 확인
+- 표 복사-붙여넣기로 간편하게 입력
+
+**구현 방법**:
+- **데이터 구조**:
+  - Firestore `timetable/current` 단일 문서
+  - `schedule`: `{"월-1": "국어", "화-2": "수학"}` 형식
+
+- **관리자 기능**:
+  - 표 복사-붙여넣기: 엑셀/워드에서 탭으로 구분된 표 붙여넣기
+  - 자동 파싱: 첫 줄은 요일, 나머지는 교시별 과목
+  - 미리보기 후 저장
+  - 직접 편집: 테이블에서 각 칸 클릭하여 수정
+
+- **파싱 로직**:
+  ```typescript
+  // 탭(\t)으로 구분된 데이터 파싱
+  const lines = text.split('\n');
+  const headerLine = lines[0].split('\t'); // 요일
+  lines.slice(1).forEach(line => {
+    const cells = line.split('\t');
+    const period = cells[0]; // 교시 번호
+    // 각 요일의 과목을 schedule 객체에 저장
+  });
+  ```
+
+- **학생 화면**:
+  - 월~금, 1~6교시 테이블
+  - 오늘 요일 열 노란색 강조
+  - "📌 오늘" 표시
+
+**파일**:
+- `lib/types.ts` - Timetable 인터페이스
+- `app/admin/timetable/page.tsx` - 관리자 시간표 관리
+- `app/student/timetable/page.tsx` - 학생 시간표 조회
+
+**복사-붙여넣기 형식**:
+```
+	월	화	수	목	금
+1	국어	수학	영어	과학	사회
+2	수학	영어	국어	사회	과학
+...
+```
+
+---
+
+### 5.3 급식 정보 (NEIS API 연동)
+**의도**:
+- 나이스(NEIS) 교육정보 개방 포털 API로 실시간 급식 데이터 가져오기
+- 관리자가 매번 입력할 필요 없이 자동화
+
+**구현 방법**:
+- **NEIS API 설정**:
+  - 관리자 설정 페이지에서 입력:
+    - API 키 (open.neis.go.kr에서 발급)
+    - 시도교육청코드 (예: B10=서울)
+    - 학교코드 (10자리)
+    - 학교명 (표시용)
+  - Firestore `neisSettings/current`에 저장
+
+- **API 호출 구조**:
+  ```typescript
+  // 서버사이드 API Route
+  GET /api/neis/meal?date=20251013
+
+  // NEIS API 호출
+  const url = `https://open.neis.go.kr/hub/mealServiceDietInfo
+    ?KEY=${apiKey}
+    &ATPT_OFCDC_SC_CODE=${atptOfcdcScCode}
+    &SD_SCHUL_CODE=${sdSchulCode}
+    &MLSV_YMD=${date}`;
+  ```
+
+- **학생 화면**:
+  - 이번 주 + 다음 주 급식 표시 (14일치)
+  - 주말 자동 스킵
+  - 오늘 급식 노란색 강조
+  - 조식/중식/석식 구분
+  - 알레르기 정보 제거하여 가독성 향상
+  - 칼로리 정보 표시
+
+**파일**:
+- `lib/types.ts` - NeisSettings 인터페이스
+- `app/admin/neis-settings/page.tsx` - NEIS 설정
+- `app/api/neis/meal/route.ts` - API Route (서버사이드)
+- `app/student/meal/page.tsx` - 급식 조회
+
+**API 응답 가공**:
+```typescript
+const meals = data.mealServiceDietInfo[1].row.map(item => ({
+  date: item.MLSV_YMD,          // 날짜
+  mealName: item.MMEAL_SC_NM,   // 조식/중식/석식
+  dishName: item.DDISH_NM,       // 메뉴
+  calInfo: item.CAL_INFO,        // 칼로리
+}));
+```
+
+**참고 링크**:
+- NEIS 오픈API: https://open.neis.go.kr
+- 급식 API 명세: https://open.neis.go.kr/portal/data/service/selectServicePage.do?infId=OPEN17320190722175817128697
+
+---
+
+### 5.4 네비게이션 개선
+**의도**:
+- 새로운 기능들을 쉽게 접근할 수 있도록 메뉴 추가
+
+**추가된 메뉴**:
+- **관리자 홈**:
+  - 📅 학사일정 관리
+  - 📚 시간표 관리
+  - 🏫 NEIS 설정
+
+- **학생 대시보드**:
+  - 📅 학사일정
+  - 📚 시간표
+  - 🍽️ 급식
+
+---
+
+## 🐛 Phase 5 주요 이슈 및 해결
+
+### Issue 1: 빌드 에러 - QuizTopic 타입 누락
+**문제**:
+```
+Property 'subject' does not exist on type '{ id: string; }'.
+```
+
+**원인**: `badges/page.tsx`에서 topics 배열이 타입 추론 실패
+
+**해결**:
+```typescript
+// Before
+const topics = topicsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+// After
+import type { QuizTopic } from '@/lib/types';
+const topics = topicsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as QuizTopic[];
+```
+
+### Issue 2: 시간표 파싱 실패
+**문제**: 복사-붙여넣기 시 파싱이 안 되고 "형식이 올바르지 않습니다" 에러
+
+**원인**:
+- 빈 줄 필터링 누락
+- 교시 번호 검증 없이 파싱 시도
+
+**해결**:
+```typescript
+// 빈 줄 필터링
+const lines = text.split('\n').filter(line => line.trim());
+
+// 교시 번호 검증
+const period = cells[0];
+if (!period || isNaN(Number(period))) {
+  continue; // 교시 번호가 아니면 스킵
+}
+
+// 디버깅용 로그 추가
+console.log('헤더:', dayHeaders);
+console.log('파싱 결과:', parsed);
+```
+
+### Issue 3: 급식 API 400 에러
+**문제**: `GET /api/neis/meal?date=20251006` 400 Bad Request
+
+**원인**: 주말 날짜 요청 시 NEIS에서 데이터 없음
+
+**해결**:
+- 데이터 없을 경우 조용히 스킵 (에러로 처리하지 않음)
+- 학생 화면에서 14일치(2주) 요청하여 평일 데이터만 표시
+- 주말은 자동으로 제외됨
+
+```typescript
+if (data.meals && data.meals.length > 0) {
+  meals[dateStr] = data.meals;
+}
+// 데이터 없어도 에러 발생 안 함
+```
+
+---
+
+## 📊 현재 프로젝트 상태 (2025-10-12)
+
+### 완성된 기능
+✅ 학생 등록 및 로그인
+✅ 출석 체크 (감정 선택, 사진 촬영)
+✅ 과제 관리 시스템 (5가지 제출 방식, 이미지 압축)
+✅ 퀴즈 시스템 (생성, 수정, 이미지 첨부, 풀이)
+✅ 신고 시스템
+✅ 리더보드 (점수 순위, 퀴즈 제작 순위)
+✅ 통계 대시보드 (학생용, 관리자용)
+✅ 배지/업적 시스템 (17종, 자동 체크)
+✅ 키오스크 화면
+✅ 이미지 업로드 (드래그앤드롭, Ctrl+V, 압축)
+✅ **학사일정 관리 (개별/CSV 일괄 등록, 기간 지원)**
+✅ **시간표 관리 (표 복사-붙여넣기, 직접 편집)**
+✅ **급식 조회 (NEIS API 연동, 자동 업데이트)**
+
+### 다음 계획
 🔜 알림 시스템 (과제 마감 임박, 새 퀴즈 등)
 🔜 교사 대시보드 개선
 🔜 학생 프로필 페이지
