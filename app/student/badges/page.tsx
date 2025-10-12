@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
-import type { StudentBadge, BadgeType, QuizAttempt, Quiz, Attendance } from '@/lib/types';
+import type { StudentBadge, BadgeType, QuizAttempt, Quiz, Attendance, QuizTopic } from '@/lib/types';
 import { BADGES, RARITY_INFO, checkAllBadges, type BadgeCheckData } from '@/lib/badges';
 
 export default function StudentBadgesPage() {
@@ -132,7 +132,7 @@ export default function StudentBadgesPage() {
       // 과목별 평균
       const subjectScores = new Map<string, number[]>();
       const topicsSnap = await getDocs(collection(db, 'quizTopics'));
-      const topics = topicsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const topics = topicsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as QuizTopic[];
 
       attempts.forEach(attempt => {
         const topic = topics.find(t => t.id === attempt.topicId);
