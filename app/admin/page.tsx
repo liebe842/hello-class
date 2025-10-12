@@ -103,6 +103,72 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* 학사일정 관리 카드 */}
+          <Link href="/admin/school-schedule">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">📅 학사일정 관리</h2>
+              <p className="text-gray-600 mb-4">학사일정을 등록하고 관리합니다.</p>
+              <div className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 rounded-lg transition text-center">
+                일정 관리하기
+              </div>
+            </div>
+          </Link>
+
+          {/* 시간표 관리 카드 */}
+          <Link href="/admin/timetable">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">📚 시간표 관리</h2>
+              <p className="text-gray-600 mb-4">시간표를 등록하고 관리합니다.</p>
+              <div className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-3 rounded-lg transition text-center">
+                시간표 관리하기
+              </div>
+            </div>
+          </Link>
+
+          {/* NEIS 설정 카드 */}
+          <Link href="/admin/neis-settings">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">🏫 NEIS 설정</h2>
+              <p className="text-gray-600 mb-4">급식 API 연동을 위한 학교 정보를 설정합니다.</p>
+              <div className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-lg transition text-center">
+                설정하기
+              </div>
+            </div>
+          </Link>
+
+          {/* 칭찬하기 카드 */}
+          <Link href="/admin/praise">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">✨ 칭찬하기</h2>
+              <p className="text-gray-600 mb-4">학생들에게 칭찬을 전달하고 긍정적인 변화를 이끌어보세요.</p>
+              <div className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold py-3 rounded-lg transition text-center">
+                칭찬 작성하기
+              </div>
+            </div>
+          </Link>
+
+          {/* 칭찬 관리 카드 */}
+          <Link href="/admin/praise-list">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">📋 칭찬 관리</h2>
+              <p className="text-gray-600 mb-4">전체 칭찬 목록을 확인하고 관리합니다.</p>
+              <div className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded-lg transition text-center">
+                목록 보기
+              </div>
+            </div>
+          </Link>
+
+          {/* 학생 목표 현황 카드 */}
+          <Link href="/admin/student-goals">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">🎯 학생 목표 현황</h2>
+              <p className="text-gray-600 mb-4">학생들이 설정한 목표를 확인하고 응원합니다.</p>
+              <div className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 rounded-lg transition text-center">
+                목표 보기
+              </div>
+            </div>
+          </Link>
+
           {/* AI 분석 리포트 카드 */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h2 className="text-xl font-bold mb-4 text-gray-800">📈 AI 분석</h2>

@@ -1200,5 +1200,214 @@ if (data.meals && data.meals.length > 0) {
 
 ---
 
-**마지막 업데이트**: 2025-10-12
+## 🆕 Phase 6: 칭찬 시스템 및 목표 관리
+
+### 6.1 칭찬 시스템
+**의도**:
+- 데일 카네기 『인간관계론』의 핵심 원칙 적용
+- "진심 어린 칭찬은 상대방에게 긍정적인 변화를 일으킨다"
+- 학급 내 긍정적 분위기 조성 및 관계 개선
+
+**구현 방법**:
+- **칭찬 카테고리 (10가지)**:
+  - 친절함, 성실함, 협동심, 창의성, 리더십
+  - 책임감, 배려심, 노력, 발전, 긍정적 태도
+
+- **칭찬 주체/대상**:
+  - 교사 → 학생
+  - 학생 → 학생
+  - 학생 → 교사
+
+- **주요 기능**:
+  - 진정성 권장: 10자 미만 시 더 자세히 작성 권장
+  - 공개/비공개 옵션
+  - 자기 자신 칭찬 방지
+  - 카테고리별 통계 및 "나의 강점" 자동 계산
+
+**파일**:
+- `lib/types.ts` - Praise, PraiseCategory 인터페이스
+- `app/admin/praise/page.tsx` - 교사 칭찬 작성
+- `app/admin/praise-list/page.tsx` - 교사 칭찬 관리 (통계, 필터링)
+- `app/student/praise/page.tsx` - 학생 칭찬 작성
+- `app/student/praise-list/page.tsx` - 학생 칭찬 조회 (받은/보낸 칭찬)
+
+**UI 특징**:
+- 카네기 인간관계론 인용구 표시
+- 카테고리별 색상 및 이모지
+- 받은 칭찬/보낸 칭찬 탭 분리
+- 카테고리별 통계 시각화
+
+---
+
+### 6.2 학생 자율 목표 시스템
+**의도**:
+- 학생 자기주도성 강화
+- 학생이 직접 목표를 세우고 스스로 달성 추적
+- 교사는 모니터링 및 격려 역할
+
+**구현 방법**:
+- **목표 설정**:
+  - 목표 제목 (예: "매일 퀴즈 1개 만들기")
+  - 목표 설명 (선택)
+  - 목표 횟수 + 단위 (회, 일, 개, 권, 시간, 페이지)
+  - 마감일 설정
+
+- **진행 추적**:
+  - 하루 1회 체크 제한
+  - 진행률 퍼센트 바
+  - D-day 계산 및 표시
+  - 목표 달성 시 자동 완료 처리
+
+- **교사 모니터링**:
+  - 학생별 목표 현황 조회
+  - 전체 통계 (총 목표, 진행 중, 완료)
+  - 목표 설정 학생 수 파악
+
+**파일**:
+- `lib/types.ts` - StudentGoal 인터페이스
+- `app/student/goals/page.tsx` - 학생 목표 관리 (생성, 체크, 삭제)
+- `app/admin/student-goals/page.tsx` - 교사 목표 현황 조회
+
+**주요 기능**:
+- 목표 생성 마법사 (단계별 입력)
+- 오늘 체크하기 버튼 (중복 방지)
+- 진행 중/완료 목표 구분 표시
+- 완료 목표는 초록색 강조
+- 학생별 그룹핑 (교사 화면)
+
+---
+
+### 6.3 데이터 구조
+
+**Praise (칭찬)**:
+```typescript
+{
+  id: string;
+  fromId: string;           // 작성자 ID
+  fromName: string;         // 작성자 이름
+  fromType: 'teacher' | 'student';
+  toId: string;             // 대상자 ID
+  toName: string;           // 대상자 이름
+  toType: 'teacher' | 'student';
+  category: PraiseCategory; // 10가지 카테고리
+  content: string;          // 칭찬 내용
+  isPublic: boolean;        // 공개 여부
+  createdAt: Date;
+}
+```
+
+**StudentGoal (학생 목표)**:
+```typescript
+{
+  id: string;
+  studentId: string;
+  studentName: string;
+  title: string;            // 목표 제목
+  description?: string;     // 상세 설명
+  targetCount: number;      // 목표 횟수
+  currentCount: number;     // 현재 진행
+  unit: string;            // 단위
+  startDate: string;       // YYYY-MM-DD
+  endDate: string;         // YYYY-MM-DD
+  checkDates: string[];    // 체크한 날짜들
+  status: 'active' | 'completed' | 'failed';
+  createdAt: Date;
+}
+```
+
+---
+
+## 🐛 Phase 6 주요 이슈 및 해결
+
+### Issue 1: localStorage 키 불일치 (칭찬 페이지)
+**문제**: 칭찬하기 클릭 시 "로그인이 필요합니다" 팝업
+
+**원인**:
+- 대시보드는 `studentSession` 키 사용
+- 칭찬 페이지는 `studentData` 키 사용
+
+**해결**:
+```typescript
+// Before
+const studentData = localStorage.getItem('studentData');
+
+// After
+const studentData = localStorage.getItem('studentSession');
+```
+
+### Issue 2: Firestore 복합 인덱스 오류
+**문제**:
+```
+The query requires an index. You can create it here:
+https://console.firebase.google.com/.../indexes?create_composite=...
+```
+
+**원인**: `orderBy('grade'), orderBy('class'), orderBy('number')` 복합 정렬
+
+**해결**:
+- Firestore 쿼리에서 orderBy 제거
+- 클라이언트 측에서 배열 정렬로 변경
+```typescript
+const studentsSnap = await getDocs(collection(db, 'students'));
+studentsData.sort((a, b) => {
+  if (a.grade !== b.grade) return a.grade - b.grade;
+  if (a.class !== b.class) return a.class - b.class;
+  return a.number - b.number;
+});
+```
+
+### Issue 3: TypeScript any 타입 경고
+**문제**: `createdAt: Timestamp.now() as any` eslint 오류
+
+**해결**:
+```typescript
+// Before
+createdAt: Timestamp.now() as any
+
+// After
+createdAt: Timestamp.now() as unknown as Date
+```
+
+### Issue 4: JSX 특수문자 이스케이프
+**문제**: `"` 문자 사용 시 eslint 오류
+
+**해결**:
+```typescript
+// Before
+"사람들은 자신의 장점을 인정받고..."
+
+// After
+&quot;사람들은 자신의 장점을 인정받고...&quot;
+```
+
+---
+
+## 📊 현재 프로젝트 상태 (2025-10-13)
+
+### 완성된 기능
+✅ 학생 등록 및 로그인
+✅ 출석 체크 (감정 선택, 사진 촬영)
+✅ 과제 관리 시스템 (5가지 제출 방식, 이미지 압축)
+✅ 퀴즈 시스템 (생성, 수정, 이미지 첨부, 풀이)
+✅ 신고 시스템
+✅ 리더보드 (점수 순위, 퀴즈 제작 순위)
+✅ 통계 대시보드 (학생용, 관리자용)
+✅ 배지/업적 시스템 (17종, 자동 체크)
+✅ 키오스크 화면
+✅ 이미지 업로드 (드래그앤드롭, Ctrl+V, 압축)
+✅ 학사일정 관리 (개별/CSV 일괄 등록, 기간 지원)
+✅ 시간표 관리 (표 복사-붙여넣기, 직접 편집)
+✅ 급식 조회 (NEIS API 연동, 자동 업데이트)
+✅ **칭찬 시스템 (10가지 카테고리, 공개/비공개, 통계)**
+✅ **학생 자율 목표 시스템 (목표 설정, 진행 추적, 교사 모니터링)**
+
+### 다음 계획
+🔜 알림 시스템 (과제 마감 임박, 새 퀴즈 등)
+🔜 교사 대시보드 개선
+🔜 학생 프로필 페이지
+🔜 목표 달성 시 배지 연동
+
+---
+
+**마지막 업데이트**: 2025-10-13
 **작성자**: Claude Code & User

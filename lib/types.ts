@@ -215,3 +215,76 @@ export interface StudentBadge {
   unlockedAt: Date;
   isNew: boolean;           // 새로 획득한 배지 (확인 전)
 }
+
+// 학사일정
+export interface SchoolSchedule {
+  id: string;
+  startDate: string;        // YYYY-MM-DD (시작일)
+  endDate?: string;         // YYYY-MM-DD (종료일, 선택사항)
+  eventName: string;        // 행사명
+  createdAt: Date;
+}
+
+// 시간표
+export interface Timetable {
+  id: string;
+  schedule: {
+    [key: string]: string;  // "월-1": "국어", "화-2": "수학" 등
+  };
+  updatedAt: Date;
+}
+
+// NEIS 학교 설정
+export interface NeisSettings {
+  id: string;
+  atptOfcdcScCode: string;  // 시도교육청코드
+  sdSchulCode: string;      // 학교코드
+  schoolName: string;       // 학교명 (표시용)
+  apiKey: string;           // NEIS API 키
+  updatedAt: Date;
+}
+
+// 칭찬 카테고리
+export type PraiseCategory =
+  | 'kindness'      // 친절함
+  | 'diligence'     // 성실함
+  | 'cooperation'   // 협동심
+  | 'creativity'    // 창의성
+  | 'leadership'    // 리더십
+  | 'responsibility'// 책임감
+  | 'respect'       // 배려심
+  | 'effort'        // 노력
+  | 'improvement'   // 발전
+  | 'positive';     // 긍정적 태도
+
+// 칭찬
+export interface Praise {
+  id: string;
+  fromId: string;           // 작성자 ID
+  fromName: string;         // 작성자 이름
+  fromType: 'teacher' | 'student';  // 작성자 유형
+  toId: string;             // 대상자 ID
+  toName: string;           // 대상자 이름
+  toType: 'teacher' | 'student';    // 대상자 유형
+  category: PraiseCategory; // 칭찬 카테고리
+  content: string;          // 칭찬 내용
+  isPublic: boolean;        // 공개 여부
+  createdAt: Date;
+}
+
+// 학생 개인 목표
+export interface StudentGoal {
+  id: string;
+  studentId: string;
+  studentName: string;
+  title: string;            // 목표 제목 (예: "매일 퀴즈 1개 만들기")
+  description?: string;     // 상세 설명 (선택)
+  targetCount: number;      // 목표 횟수 (10회)
+  currentCount: number;     // 현재 진행 (3회)
+  unit: string;            // 단위 ("회", "일", "개", "권" 등)
+  startDate: string;       // YYYY-MM-DD
+  endDate: string;         // YYYY-MM-DD
+  checkDates: string[];    // 체크한 날짜들 ["2025-01-15", ...]
+  status: 'active' | 'completed' | 'failed';  // 진행중/완료/실패
+  createdAt: Date;
+}

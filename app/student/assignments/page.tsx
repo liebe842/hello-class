@@ -17,7 +17,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import type { Student, Assignment } from '@/lib/types';
+import type { Student, Assignment, StudentGoal } from '@/lib/types';
 
 interface AssignmentSubmission {
   id?: string;
@@ -41,6 +41,16 @@ export default function StudentAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [submissions, setSubmissions] = useState<Record<string, AssignmentSubmission>>({});
   const [loading, setLoading] = useState(true);
+
+  // 목표 관련 상태
+  const [goals, setGoals] = useState<StudentGoal[]>([]);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [goalTitle, setGoalTitle] = useState('');
+  const [goalDescription, setGoalDescription] = useState('');
+  const [goalTargetCount, setGoalTargetCount] = useState(10);
+  const [goalUnit, setGoalUnit] = useState('회');
+  const [goalEndDate, setGoalEndDate] = useState('');
+  const [isCreatingGoal, setIsCreatingGoal] = useState(false);
 
   // 제출 모달 상태
   const [showSubmitModal, setShowSubmitModal] = useState(false);

@@ -313,6 +313,84 @@ export default function StudentDashboardPage() {
             </div>
           </Link>
 
+          {/* 학사일정 바로가기 */}
+          <Link href="/student/school-schedule">
+            <div className="bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">📅 학사일정</h3>
+              <p className="text-teal-100 text-sm mb-4">
+                학교 일정과 행사를 확인해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                일정 보러가기 →
+              </div>
+            </div>
+          </Link>
+
+          {/* 시간표 바로가기 */}
+          <Link href="/student/timetable">
+            <div className="bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">📚 시간표</h3>
+              <p className="text-cyan-100 text-sm mb-4">
+                오늘의 수업을 확인해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                시간표 보러가기 →
+              </div>
+            </div>
+          </Link>
+
+          {/* 급식 바로가기 */}
+          <Link href="/student/meal">
+            <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">🍽️ 급식</h3>
+              <p className="text-orange-100 text-sm mb-4">
+                이번 주 급식 메뉴를 확인해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                급식 보러가기 →
+              </div>
+            </div>
+          </Link>
+
+          {/* 칭찬하기 바로가기 */}
+          <Link href="/student/praise">
+            <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">✨ 칭찬하기</h3>
+              <p className="text-pink-100 text-sm mb-4">
+                친구와 선생님을 칭찬해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                칭찬 전달하기 →
+              </div>
+            </div>
+          </Link>
+
+          {/* 내 칭찬 보기 바로가기 */}
+          <Link href="/student/praise-list">
+            <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">💖 내 칭찬</h3>
+              <p className="text-purple-100 text-sm mb-4">
+                받은 칭찬과 보낸 칭찬을 확인해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                칭찬 보러가기 →
+              </div>
+            </div>
+          </Link>
+
+          {/* 나의 목표 바로가기 */}
+          <Link href="/student/goals">
+            <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
+              <h3 className="text-xl font-bold mb-2">🎯 나의 목표</h3>
+              <p className="text-indigo-100 text-sm mb-4">
+                나만의 목표를 세우고 달성해보세요!
+              </p>
+              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
+                목표 관리하기 →
+              </div>
+            </div>
+          </Link>
+
           {/* 출석 현황 */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-xl font-bold mb-4 text-gray-800">📅 출석 현황</h3>
