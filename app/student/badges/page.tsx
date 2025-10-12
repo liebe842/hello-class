@@ -89,7 +89,6 @@ export default function StudentBadgesPage() {
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
       let streak = 0;
-      const today = new Date().toISOString().split('T')[0];
       for (let i = 0; i < sortedAttendance.length; i++) {
         const expectedDate = new Date();
         expectedDate.setDate(expectedDate.getDate() - i);

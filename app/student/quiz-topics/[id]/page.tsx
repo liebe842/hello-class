@@ -547,7 +547,7 @@ export default function StudentQuizTopicDetailPage() {
                         <p className="text-sm text-yellow-700 mb-3">
                           다른 친구들의 퀴즈를 풀기 전에, 먼저 퀴즈를 만들어야 해요.
                           <br />
-                          위에 있는 <strong>"✏️ 퀴즈 만들기"</strong> 탭을 클릭해서 퀴즈를 만들어보세요!
+                          위에 있는 <strong>&quot;✏️ 퀴즈 만들기&quot;</strong> 탭을 클릭해서 퀴즈를 만들어보세요!
                         </p>
                         <button
                           onClick={() => setActiveTab('create')}

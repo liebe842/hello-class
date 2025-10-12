@@ -187,16 +187,6 @@ export default function AdminAssignmentSubmissionsPage() {
                     <span className="text-gray-700">
                       <strong>마감일:</strong> {selectedAssignment.dueDate.toLocaleDateString('ko-KR')}
                     </span>
-                    {selectedAssignment.canvaUrl && (
-                      <a
-                        href={selectedAssignment.canvaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        📎 Canva 링크
-                      </a>
-                    )}
                   </div>
                 </div>
 

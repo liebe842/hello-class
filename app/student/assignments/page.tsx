@@ -362,7 +362,7 @@ export default function StudentAssignmentsPage() {
                     확인 제출 과제입니다
                   </p>
                   <p className="text-sm text-gray-600">
-                    별도의 파일이나 내용 제출 없이 "제출하기" 버튼만 클릭하면 완료됩니다.
+                    별도의 파일이나 내용 제출 없이 &quot;제출하기&quot; 버튼만 클릭하면 완료됩니다.
                   </p>
                 </div>
               )}
