@@ -14,7 +14,8 @@ import {
   addDoc,
   updateDoc,
   doc,
-  Timestamp
+  Timestamp,
+  increment
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Student, Assignment, StudentGoal } from '@/lib/types';
@@ -240,9 +241,26 @@ export default function StudentAssignmentsPage() {
       } else {
         // 새로 제출
         await addDoc(collection(db, 'assignmentSubmissions'), submissionData);
+
+        // 기한 내 제출 시 포인트 지급 (5P)
+        if (!isLate) {
+          await updateDoc(doc(db, 'students', student.id), {
+            points: increment(5),
+          });
+
+          await addDoc(collection(db, 'pointHistory'), {
+            studentId: student.id,
+            studentName: student.name,
+            type: 'earn',
+            amount: 5,
+            source: 'assignment',
+            description: `${selectedAssignment.title} 제출`,
+            createdAt: Timestamp.now(),
+          });
+        }
       }
 
-      alert('과제가 제출되었습니다!');
+      alert(isLate ? '과제가 제출되었습니다!' : '과제가 제출되었습니다! 🎉 +5P');
       setShowSubmitModal(false);
       setImageFile(null);
       setImagePreview(null);

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, Timestamp, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, addDoc, Timestamp, query, orderBy, where, updateDoc, doc, increment } from 'firebase/firestore';
 import type { Student, PraiseCategory, Praise } from '@/lib/types';
 
 const CATEGORY_LABELS: Record<PraiseCategory, string> = {
@@ -108,6 +108,24 @@ export default function StudentPraisePage() {
     setSubmitting(true);
 
     try {
+      // 하루 1회 제한 확인 (칭찬 주기)
+      const today = new Date().toISOString().split('T')[0];
+      const praiseGivenQuery = query(
+        collection(db, 'praises'),
+        where('fromId', '==', currentStudent.id),
+        where('fromType', '==', 'student')
+      );
+      const praiseGivenSnap = await getDocs(praiseGivenQuery);
+      const todayPraiseGiven = praiseGivenSnap.docs.some(doc => {
+        const createdAt = doc.data().createdAt?.toDate();
+        return createdAt && createdAt.toISOString().split('T')[0] === today;
+      });
+
+      if (todayPraiseGiven) {
+        alert('칭찬은 하루에 한 번만 보낼 수 있습니다!');
+        setSubmitting(false);
+        return;
+      }
       let praiseData: Omit<Praise, 'id'>;
 
       if (targetType === 'teacher') {
@@ -149,8 +167,57 @@ export default function StudentPraisePage() {
 
       await addDoc(collection(db, 'praises'), praiseData);
 
+      // 칭찬 주기 포인트 (1P)
+      await updateDoc(doc(db, 'students', currentStudent.id), {
+        points: increment(1),
+      });
+
+      await addDoc(collection(db, 'pointHistory'), {
+        studentId: currentStudent.id,
+        studentName: currentStudent.name,
+        type: 'earn',
+        amount: 1,
+        source: 'praise_given',
+        description: `칭찬 보내기`,
+        createdAt: Timestamp.now(),
+      });
+
+      // 칭찬 받기 포인트 (2P) - 학생에게만
+      if (targetType === 'student') {
+        // 하루 1회 제한 확인 (칭찬 받기)
+        const praiseReceivedQuery = query(
+          collection(db, 'praises'),
+          where('toId', '==', selectedStudentId),
+          where('toType', '==', 'student')
+        );
+        const praiseReceivedSnap = await getDocs(praiseReceivedQuery);
+        const todayPraiseReceived = praiseReceivedSnap.docs.some(doc => {
+          const createdAt = doc.data().createdAt?.toDate();
+          return createdAt && createdAt.toISOString().split('T')[0] === today;
+        });
+
+        if (!todayPraiseReceived) {
+          const receivingStudent = students.find(s => s.id === selectedStudentId);
+          if (receivingStudent) {
+            await updateDoc(doc(db, 'students', selectedStudentId), {
+              points: increment(2),
+            });
+
+            await addDoc(collection(db, 'pointHistory'), {
+              studentId: selectedStudentId,
+              studentName: receivingStudent.name,
+              type: 'earn',
+              amount: 2,
+              source: 'praise_received',
+              description: `칭찬 받기`,
+              createdAt: Timestamp.now(),
+            });
+          }
+        }
+      }
+
       const target = targetType === 'teacher' ? '선생님' : students.find(s => s.id === selectedStudentId)?.name;
-      alert(`${target}에게 칭찬을 전달했습니다!`);
+      alert(`${target}에게 칭찬을 전달했습니다! 🎉 +1P`);
 
       // 폼 초기화
       setSelectedStudentId('');

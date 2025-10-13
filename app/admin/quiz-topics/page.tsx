@@ -137,136 +137,126 @@ export default function AdminQuizTopicsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* 헤더 */}
-      <header className="bg-purple-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">퀴즈 주제 관리</h1>
-          <Link
-            href="/admin"
-            className="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            관리자 홈
-          </Link>
-        </div>
-      </header>
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">퀴즈 주제 관리</h1>
+        <p className="text-gray-600">학생들이 퀴즈를 출제할 수 있는 주제를 관리합니다.</p>
+      </div>
 
-      {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
-        {/* 상단 액션 바 */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            전체 주제 ({topics.length}개)
-          </h2>
-          <button
-            onClick={() => {
-              setEditingTopic(null);
-              resetForm();
-              setShowModal(true);
-            }}
-            className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-6 py-3 rounded-lg transition"
-          >
-            + 새 주제 만들기
-          </button>
-        </div>
+      {/* 상단 액션 바 */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-gray-800">
+          전체 주제 ({topics.length}개)
+        </h2>
+        <button
+          onClick={() => {
+            setEditingTopic(null);
+            resetForm();
+            setShowModal(true);
+          }}
+          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg transition"
+        >
+          새 주제 만들기
+        </button>
+      </div>
 
-        {/* 주제 목록 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topics.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-gray-500">
-              생성된 퀴즈 주제가 없습니다. 새 주제를 만들어보세요.
-            </div>
-          ) : (
-            topics.map((topic) => (
-              <div
-                key={topic.id}
-                className={`bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition ${
-                  !topic.isActive ? 'opacity-60' : ''
-                }`}
-              >
-                {/* 상단 배지 */}
-                <div className="flex justify-between items-start mb-3">
-                  <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">
-                    {topic.subject}
+      {/* 주제 목록 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {topics.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-gray-500">
+            생성된 퀴즈 주제가 없습니다. 새 주제를 만들어보세요.
+          </div>
+        ) : (
+          topics.map((topic) => (
+            <div
+              key={topic.id}
+              className={`bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition ${
+                !topic.isActive ? 'opacity-60' : ''
+              }`}
+            >
+              {/* 상단 배지 */}
+              <div className="flex justify-between items-start mb-3">
+                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
+                  {topic.subject}
+                </span>
+                <span
+                  className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                    topic.isActive
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  {topic.isActive ? '활성' : '비활성'}
+                </span>
+              </div>
+
+              {/* 제목 & 설명 */}
+              <h3 className="text-lg font-bold text-gray-800 mb-2">
+                {topic.title}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                {topic.description}
+              </p>
+
+              {/* 기간 */}
+              <div className="text-xs text-gray-500 mb-4">
+                <div>시작: {topic.startDate.toLocaleDateString('ko-KR')}</div>
+                <div>마감: {topic.dueDate.toLocaleDateString('ko-KR')}</div>
+              </div>
+
+              {/* 설정 정보 */}
+              <div className="border-t pt-4 mb-4">
+                <div className="text-sm text-gray-700 mb-1">
+                  1인당 최대: <span className="font-semibold">{topic.maxQuizzesPerStudent}개</span>
+                </div>
+                <div className="text-sm text-gray-700">
+                  유형: <span className="font-semibold">
+                    {topic.allowedQuizTypes.includes('multiple-choice') && '4지선다'}
+                    {topic.allowedQuizTypes.includes('multiple-choice') &&
+                     topic.allowedQuizTypes.includes('true-false') && ', '}
+                    {topic.allowedQuizTypes.includes('true-false') && 'OX'}
                   </span>
-                  <span
-                    className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                      topic.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-200 text-gray-600'
-                    }`}
-                  >
-                    {topic.isActive ? '활성' : '비활성'}
-                  </span>
-                </div>
-
-                {/* 제목 & 설명 */}
-                <h3 className="text-lg font-bold text-gray-800 mb-2">
-                  {topic.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {topic.description}
-                </p>
-
-                {/* 기간 */}
-                <div className="text-xs text-gray-500 mb-4">
-                  <div>시작: {topic.startDate.toLocaleDateString('ko-KR')}</div>
-                  <div>마감: {topic.dueDate.toLocaleDateString('ko-KR')}</div>
-                </div>
-
-                {/* 설정 정보 */}
-                <div className="border-t pt-4 mb-4">
-                  <div className="text-sm text-gray-700 mb-1">
-                    1인당 최대: <span className="font-semibold">{topic.maxQuizzesPerStudent}개</span>
-                  </div>
-                  <div className="text-sm text-gray-700">
-                    유형: <span className="font-semibold">
-                      {topic.allowedQuizTypes.includes('multiple-choice') && '4지선다'}
-                      {topic.allowedQuizTypes.includes('multiple-choice') &&
-                       topic.allowedQuizTypes.includes('true-false') && ', '}
-                      {topic.allowedQuizTypes.includes('true-false') && 'OX'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 액션 버튼 */}
-                <div className="flex gap-2">
-                  <Link
-                    href={`/admin/quiz-topics/${topic.id}`}
-                    className="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-center py-2 rounded-lg transition text-sm font-medium"
-                  >
-                    상세보기
-                  </Link>
-                  <button
-                    onClick={() => handleEdit(topic)}
-                    className="px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition text-sm"
-                  >
-                    수정
-                  </button>
-                  <button
-                    onClick={() => toggleActive(topic)}
-                    className="px-4 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition text-sm"
-                  >
-                    {topic.isActive ? '비활성' : '활성'}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(topic.id)}
-                    className="px-4 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm"
-                  >
-                    삭제
-                  </button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </main>
+
+              {/* 액션 버튼 */}
+              <div className="flex gap-2">
+                <Link
+                  href={`/admin/quiz-topics/${topic.id}`}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-center py-2 rounded-lg transition text-sm font-medium"
+                >
+                  상세보기
+                </Link>
+                <button
+                  onClick={() => handleEdit(topic)}
+                  className="px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition text-sm"
+                >
+                  수정
+                </button>
+                <button
+                  onClick={() => toggleActive(topic)}
+                  className="px-4 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition text-sm"
+                >
+                  {topic.isActive ? '비활성' : '활성'}
+                </button>
+                <button
+                  onClick={() => handleDelete(topic.id)}
+                  className="px-4 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm"
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
       {/* 주제 생성/수정 모달 */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-2xl font-bold mb-6 text-gray-800">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">
               {editingTopic ? '주제 수정' : '새 퀴즈 주제 만들기'}
             </h3>
             <form onSubmit={handleSubmit}>
@@ -281,7 +271,7 @@ export default function AdminQuizTopicsPage() {
                     required
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="예: 3단원 식물의 구조"
                   />
                 </div>
@@ -294,7 +284,7 @@ export default function AdminQuizTopicsPage() {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 h-24"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 h-24"
                     placeholder="학생들에게 보여줄 설명을 입력하세요"
                   />
                 </div>
@@ -307,7 +297,7 @@ export default function AdminQuizTopicsPage() {
                   <select
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                   >
                     {subjects.map(subject => (
                       <option key={subject} value={subject}>{subject}</option>
@@ -326,7 +316,7 @@ export default function AdminQuizTopicsPage() {
                       required
                       value={formData.startDate}
                       onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     />
                   </div>
                   <div>
@@ -338,7 +328,7 @@ export default function AdminQuizTopicsPage() {
                       required
                       value={formData.dueDate}
                       onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     />
                   </div>
                 </div>
@@ -355,7 +345,7 @@ export default function AdminQuizTopicsPage() {
                     max="20"
                     value={formData.maxQuizzesPerStudent}
                     onChange={(e) => setFormData({ ...formData, maxQuizzesPerStudent: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                   />
                   <p className="text-xs text-gray-500 mt-1">학생 한 명이 출제할 수 있는 최대 퀴즈 개수</p>
                 </div>
@@ -371,7 +361,7 @@ export default function AdminQuizTopicsPage() {
                         type="checkbox"
                         checked={formData.allowedQuizTypes.includes('multiple-choice')}
                         onChange={() => handleQuizTypeToggle('multiple-choice')}
-                        className="w-5 h-5 text-purple-600 rounded mr-2"
+                        className="w-5 h-5 text-blue-600 rounded mr-2"
                       />
                       <span className="text-gray-700">4지선다</span>
                     </label>
@@ -380,7 +370,7 @@ export default function AdminQuizTopicsPage() {
                         type="checkbox"
                         checked={formData.allowedQuizTypes.includes('true-false')}
                         onChange={() => handleQuizTypeToggle('true-false')}
-                        className="w-5 h-5 text-purple-600 rounded mr-2"
+                        className="w-5 h-5 text-blue-600 rounded mr-2"
                       />
                       <span className="text-gray-700">OX 퀴즈</span>
                     </label>
@@ -397,14 +387,14 @@ export default function AdminQuizTopicsPage() {
                     setEditingTopic(null);
                     resetForm();
                   }}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg transition"
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg transition"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={formData.allowedQuizTypes.length === 0}
-                  className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {editingTopic ? '수정' : '생성'}
                 </button>

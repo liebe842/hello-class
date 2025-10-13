@@ -298,28 +298,19 @@ export default function StudentsManagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* 헤더 */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">학생 관리</h1>
-          <Link
-            href="/admin"
-            className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            관리자 홈
-          </Link>
-        </div>
-      </header>
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">학생 관리</h1>
+        <p className="text-gray-600">학생 정보를 등록하고 관리합니다.</p>
+      </div>
 
-      {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
-        {/* 상단 액션 바 */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              전체 학생 ({students.length}명)
-            </h2>
+      {/* 상단 액션 바 */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">
+            전체 학생 ({students.length}명)
+          </h2>
             {selectedStudents.length > 0 && (
               <p className="text-sm text-blue-600 mt-1">
                 {selectedStudents.length}명 선택됨
@@ -330,28 +321,28 @@ export default function StudentsManagePage() {
             {selectedStudents.length > 0 && (
               <button
                 onClick={handleDeleteSelected}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg transition"
+                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-lg transition"
               >
-                🗑️ 선택 삭제 ({selectedStudents.length})
+                선택 삭제 ({selectedStudents.length})
               </button>
             )}
             <button
               onClick={downloadTemplate}
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-lg transition"
+              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg transition"
             >
-              📥 CSV 템플릿 다운로드
+              CSV 템플릿
             </button>
             <button
               onClick={() => setShowBulkUploadModal(true)}
-              className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-6 py-3 rounded-lg transition"
+              className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-lg transition"
             >
-              📄 CSV 일괄 등록
+              CSV 일괄 등록
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg transition"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg transition"
             >
-              + 학생 등록
+              학생 등록
             </button>
           </div>
         </div>
@@ -416,7 +407,6 @@ export default function StudentsManagePage() {
             </tbody>
           </table>
         </div>
-      </main>
 
       {/* CSV 일괄 등록 모달 */}
       {showBulkUploadModal && (

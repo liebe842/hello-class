@@ -108,34 +108,25 @@ export default function AssignmentsManagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* 헤더 */}
-      <header className="bg-purple-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">과제 관리</h1>
-          <Link
-            href="/admin"
-            className="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            관리자 홈
-          </Link>
-        </div>
-      </header>
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">과제 관리</h1>
+        <p className="text-gray-600">과제를 등록하고 학생들의 제출 상태를 관리합니다.</p>
+      </div>
 
-      {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
-        {/* 상단 액션 바 */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            전체 과제 ({assignments.length}개)
-          </h2>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-6 py-3 rounded-lg transition"
-          >
-            + 과제 등록
-          </button>
-        </div>
+      {/* 상단 액션 바 */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-gray-800">
+          전체 과제 ({assignments.length}개)
+        </h2>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg transition"
+        >
+          과제 등록
+        </button>
+      </div>
 
         {/* 과제 목록 */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -173,7 +164,7 @@ export default function AssignmentsManagePage() {
                         {assignment.description}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                           {submissionTypeLabel[assignment.submissionType || 'all']}
                         </span>
                       </td>
@@ -206,7 +197,6 @@ export default function AssignmentsManagePage() {
             </tbody>
           </table>
         </div>
-      </main>
 
       {/* 과제 등록/수정 모달 */}
       {showAddModal && (
@@ -226,7 +216,7 @@ export default function AssignmentsManagePage() {
                     required
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="예: 수학문제집 54쪽까지"
                   />
                 </div>
@@ -238,7 +228,7 @@ export default function AssignmentsManagePage() {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="예: 교과서 123-125쪽 문제풀이"
                     rows={3}
                   />
@@ -253,7 +243,7 @@ export default function AssignmentsManagePage() {
                     required
                     value={formData.dueDate}
                     onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                   />
                 </div>
 
@@ -267,8 +257,8 @@ export default function AssignmentsManagePage() {
                       onClick={() => setFormData({ ...formData, submissionType: 'image' })}
                       className={`px-4 py-3 rounded-lg border-2 font-semibold transition ${
                         formData.submissionType === 'image'
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
                       }`}
                     >
                       📷 이미지
@@ -278,8 +268,8 @@ export default function AssignmentsManagePage() {
                       onClick={() => setFormData({ ...formData, submissionType: 'link' })}
                       className={`px-4 py-3 rounded-lg border-2 font-semibold transition ${
                         formData.submissionType === 'link'
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
                       }`}
                     >
                       🔗 링크
@@ -289,8 +279,8 @@ export default function AssignmentsManagePage() {
                       onClick={() => setFormData({ ...formData, submissionType: 'note' })}
                       className={`px-4 py-3 rounded-lg border-2 font-semibold transition ${
                         formData.submissionType === 'note'
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
                       }`}
                     >
                       📝 메모
@@ -300,8 +290,8 @@ export default function AssignmentsManagePage() {
                       onClick={() => setFormData({ ...formData, submissionType: 'all' })}
                       className={`px-4 py-3 rounded-lg border-2 font-semibold transition ${
                         formData.submissionType === 'all'
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
                       }`}
                     >
                       ✨ 전체
@@ -311,8 +301,8 @@ export default function AssignmentsManagePage() {
                       onClick={() => setFormData({ ...formData, submissionType: 'none' })}
                       className={`px-4 py-3 rounded-lg border-2 font-semibold transition ${
                         formData.submissionType === 'none'
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
                       }`}
                     >
                       ✅ 체크만
@@ -338,7 +328,7 @@ export default function AssignmentsManagePage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition"
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition"
                 >
                   {editingAssignment ? '수정' : '등록'}
                 </button>

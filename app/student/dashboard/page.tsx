@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Webcam from 'react-webcam';
 import { db, storage } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, Timestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import type { Student, Attendance, EmotionType } from '@/lib/types';
 
@@ -133,7 +133,28 @@ export default function StudentDashboardPage() {
         createdAt: Timestamp.fromDate(now),
       });
 
-      alert('출석이 완료되었습니다!');
+      // 8시 40분 이전 출석 시 포인트 지급 (1P)
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      const isEarly = hour < 8 || (hour === 8 && minute <= 40);
+
+      if (isEarly) {
+        await updateDoc(doc(db, 'students', student.id), {
+          points: increment(1),
+        });
+
+        await addDoc(collection(db, 'pointHistory'), {
+          studentId: student.id,
+          studentName: student.name,
+          type: 'earn',
+          amount: 1,
+          source: 'attendance',
+          description: '출석 (8:40 이전)',
+          createdAt: Timestamp.now(),
+        });
+      }
+
+      alert(isEarly ? '출석이 완료되었습니다! 🎉 +1P (일찍 출석)' : '출석이 완료되었습니다!');
       setShowAttendanceModal(false);
       setSelectedEmotion(null);
       setCapturedImage(null);
@@ -222,9 +243,21 @@ export default function StudentDashboardPage() {
               </div>
               <div>
                 <h2 className="text-3xl font-bold text-gray-800 mb-2">{student.name}</h2>
-                <p className="text-gray-600">
+                <p className="text-gray-600 mb-2">
                   {student.grade}학년 {student.class}반 {student.number}번
                 </p>
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 rounded-lg flex items-center gap-2">
+                    <span className="text-2xl">💰</span>
+                    <span className="text-white font-bold text-lg">{student.points || 0}P</span>
+                  </div>
+                  <Link href="/student/points" className="text-blue-600 hover:text-blue-700 font-semibold text-sm">
+                    내역 →
+                  </Link>
+                  <Link href="/kiosk/shop" className="text-purple-600 hover:text-purple-700 font-semibold text-sm">
+                    상점 →
+                  </Link>
+                </div>
               </div>
             </div>
 

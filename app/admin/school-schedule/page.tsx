@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import type { SchoolSchedule } from '@/lib/types';
@@ -229,28 +228,18 @@ export default function AdminSchoolSchedulePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* 헤더 */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">📅 학사일정 관리</h1>
-          <Link
-            href="/admin"
-            className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            관리자 홈
-          </Link>
-        </div>
-      </header>
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">학사일정 관리</h1>
+        <p className="text-gray-600">학교 행사, 방학, 시험 기간 등의 학사일정을 관리합니다.</p>
+      </div>
 
-      {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
-        {/* 상단 액션 바 */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              전체 일정 ({schedules.length}개)
-            </h2>
+      {/* 상단 액션 바 */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">
+            전체 일정 ({schedules.length}개)
+          </h2>
             {selectedSchedules.length > 0 && (
               <p className="text-sm text-blue-600 mt-1">
                 {selectedSchedules.length}개 선택됨
@@ -261,28 +250,28 @@ export default function AdminSchoolSchedulePage() {
             {selectedSchedules.length > 0 && (
               <button
                 onClick={handleDeleteSelected}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg transition"
+                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-lg transition"
               >
-                🗑️ 선택 삭제 ({selectedSchedules.length})
+                선택 삭제 ({selectedSchedules.length})
               </button>
             )}
             <button
               onClick={downloadTemplate}
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-lg transition"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg transition"
             >
-              📥 CSV 템플릿 다운로드
+              CSV 템플릿 다운로드
             </button>
             <button
               onClick={() => setShowBulkUploadModal(true)}
-              className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-6 py-3 rounded-lg transition"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg transition"
             >
-              📄 CSV 일괄 등록
+              CSV 일괄 등록
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg transition"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg transition"
             >
-              + 일정 등록
+              일정 등록
             </button>
           </div>
         </div>
@@ -406,13 +395,12 @@ export default function AdminSchoolSchedulePage() {
             </tbody>
           </table>
         </div>
-      </main>
 
       {/* CSV 일괄 등록 모달 */}
       {showBulkUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-2xl font-bold mb-6 text-gray-800">CSV 일괄 등록</h3>
+            <h3 className="text-xl font-bold mb-6 text-gray-800">CSV 일괄 등록</h3>
 
             {/* CSV 파일 업로드 */}
             <div className="mb-6">
@@ -423,7 +411,7 @@ export default function AdminSchoolSchedulePage() {
                 type="file"
                 accept=".csv"
                 onChange={handleCSVUpload}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-sm text-gray-500 mt-2">
                 형식: startDate, endDate, eventName
@@ -479,7 +467,7 @@ export default function AdminSchoolSchedulePage() {
               <button
                 onClick={handleBulkUpload}
                 disabled={csvData.length === 0}
-                className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {csvData.length}개 등록하기
               </button>
@@ -492,7 +480,7 @@ export default function AdminSchoolSchedulePage() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
-            <h3 className="text-2xl font-bold mb-6 text-gray-800">일정 등록</h3>
+            <h3 className="text-xl font-bold mb-6 text-gray-800">일정 등록</h3>
             <form onSubmit={handleAddSchedule}>
               <div className="space-y-4">
                 <div>

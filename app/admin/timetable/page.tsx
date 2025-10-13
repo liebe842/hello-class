@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, setDoc, doc, Timestamp } from 'firebase/firestore';
 import type { Timetable } from '@/lib/types';
@@ -137,32 +136,22 @@ export default function AdminTimetablePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="p-8">
         <div className="text-xl">로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* 헤더 */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">📚 시간표 관리</h1>
-          <Link
-            href="/admin"
-            className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            관리자 홈
-          </Link>
-        </div>
-      </header>
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">시간표 편집</h1>
+        <p className="text-gray-600">요일별, 교시별 시간표를 등록하고 관리합니다.</p>
+      </div>
 
-      {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
-        {/* 복사-붙여넣기 입력 */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <h2 className="text-2xl font-bold mb-4">📋 표 복사-붙여넣기</h2>
+      {/* 복사-붙여넣기 입력 */}
+      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+        <h2 className="text-xl font-bold mb-4">표 복사-붙여넣기</h2>
           <p className="text-sm text-gray-600 mb-4">
             엑셀이나 워드에서 시간표를 복사한 후 아래에 붙여넣으세요.
             <br />
@@ -177,14 +166,14 @@ export default function AdminTimetablePage() {
           <div className="flex gap-3 mt-4">
             <button
               onClick={handleParsePaste}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               미리보기
             </button>
             {previewData && (
               <button
                 onClick={handleSave}
-                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 저장하기
               </button>
@@ -195,13 +184,13 @@ export default function AdminTimetablePage() {
         {/* 미리보기 또는 현재 시간표 */}
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">
-              {previewData ? '📄 미리보기' : '📚 현재 시간표'}
+            <h2 className="text-xl font-bold">
+              {previewData ? '미리보기' : '현재 시간표'}
             </h2>
             {!previewData && Object.keys(timetable).length > 0 && (
               <button
                 onClick={handleSaveDirectEdit}
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 변경사항 저장
               </button>
@@ -260,7 +249,6 @@ export default function AdminTimetablePage() {
             </div>
           )}
         </div>
-      </main>
     </div>
   );
 }

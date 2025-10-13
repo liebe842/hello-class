@@ -9,6 +9,7 @@ export interface Student {
   number: number; // 번호 (1, 2, 3...)
   password: string; // 4자리 비밀번호
   photoUrl?: string;
+  points: number; // 포인트 잔액
   createdAt: Date;
 }
 
@@ -287,4 +288,76 @@ export interface StudentGoal {
   checkDates: string[];    // 체크한 날짜들 ["2025-01-15", ...]
   status: 'active' | 'completed' | 'failed';  // 진행중/완료/실패
   createdAt: Date;
+}
+
+// 미니게임 타입
+export type MiniGameType = 'p5js' | 'entry' | 'iframe';
+
+// 미니게임
+export interface MiniGame {
+  id: string;
+  title: string;
+  description: string;
+  type: MiniGameType;       // p5js / entry / iframe
+  gameUrl?: string;         // 엔트리 URL 또는 외부 iframe URL
+  p5Code?: string;          // p5.js 코드 (type='p5js'일 때)
+  thumbnailUrl?: string;    // 썸네일 이미지
+  createdBy: string;        // 제작자 ID (teacher 또는 학생 ID)
+  createdByName: string;    // 제작자 이름
+  playCount: number;        // 플레이 횟수
+  isActive: boolean;        // 활성화 상태
+  createdAt: Date;
+}
+
+// 포인트 내역 타입
+export type PointSourceType =
+  | 'assignment'        // 과제 제출
+  | 'praise_received'   // 칭찬 받기
+  | 'praise_given'      // 칭찬 주기
+  | 'goal'              // 목표 달성
+  | 'attendance'        // 출석
+  | 'admin';            // 선생님 직접 지급/차감
+
+// 포인트 내역
+export interface PointHistory {
+  id: string;
+  studentId: string;
+  studentName: string;
+  type: 'earn' | 'spend';   // 획득/사용
+  amount: number;           // 금액 (양수 또는 음수)
+  source: PointSourceType | 'shop';  // 출처
+  description: string;      // 설명
+  createdAt: Date;
+}
+
+// 상점 아이템 카테고리
+export type ShopCategory = 'time' | 'privilege';
+
+// 상점 아이템
+export interface ShopItem {
+  id: string;
+  title: string;
+  description: string;
+  category: ShopCategory;   // 자유시간/특권
+  price: number;
+  isActive: boolean;        // 판매 중 여부
+  createdAt: Date;
+}
+
+// 쿠폰 상태
+export type CouponStatus = 'unused' | 'pending' | 'approved' | 'expired';
+
+// 쿠폰
+export interface Coupon {
+  id: string;
+  studentId: string;
+  studentName: string;
+  itemId: string;
+  itemTitle: string;
+  itemCategory: ShopCategory;
+  itemPrice: number;
+  purchasedAt: Date;
+  expiresAt: Date;          // 유효기간 (구매 후 1개월)
+  usedAt?: Date;            // 사용 완료 시간
+  status: CouponStatus;     // unused/pending/approved/expired
 }

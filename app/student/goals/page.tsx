@@ -14,6 +14,7 @@ import {
   deleteDoc,
   doc,
   Timestamp,
+  increment,
 } from 'firebase/firestore';
 import type { Student, StudentGoal } from '@/lib/types';
 
@@ -132,7 +133,23 @@ export default function StudentGoalsPage() {
       // 목표 달성 확인
       if (newCurrentCount >= goal.targetCount) {
         newStatus = 'completed';
-        alert('🎉 목표를 달성했습니다! 축하합니다!');
+
+        // 목표 달성 포인트 지급 (20P)
+        await updateDoc(doc(db, 'students', student.id), {
+          points: increment(20),
+        });
+
+        await addDoc(collection(db, 'pointHistory'), {
+          studentId: student.id,
+          studentName: student.name,
+          type: 'earn',
+          amount: 20,
+          source: 'goal',
+          description: `목표 달성: ${goal.title}`,
+          createdAt: Timestamp.now(),
+        });
+
+        alert('🎉 목표를 달성했습니다! 축하합니다! 🎁 +20P');
       }
 
       await updateDoc(doc(db, 'studentGoals', goal.id), {

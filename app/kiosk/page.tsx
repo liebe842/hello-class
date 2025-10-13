@@ -58,10 +58,12 @@ export default function KioskPage() {
           </button>
 
           {/* 미니게임 */}
-          <button className="bg-white rounded-3xl shadow-2xl p-12 hover:scale-105 transition-all">
-            <div className="text-8xl mb-6">🎮</div>
-            <h2 className="text-3xl font-bold text-gray-800">미니게임</h2>
-          </button>
+          <Link href="/kiosk/minigames">
+            <button className="bg-white rounded-3xl shadow-2xl p-12 hover:scale-105 transition-all w-full">
+              <div className="text-8xl mb-6">🎮</div>
+              <h2 className="text-3xl font-bold text-gray-800">미니게임</h2>
+            </button>
+          </Link>
         </div>
       </main>
 
