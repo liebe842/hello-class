@@ -360,94 +360,74 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="p-8">
-        {/* 상단 인사말 & 포인트 */}
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              Hello, {student.name} 👋
-            </h1>
-            <p className="text-gray-600">
-              오늘도 좋은 하루 보내세요! 열심히 공부하고 즐거운 시간 되세요.
-            </p>
-          </div>
-
-          {/* 우측 상단: 포인트 & 로그아웃 */}
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl shadow-lg p-6 text-white">
-              <div className="flex items-center gap-3">
-                <div className="text-4xl">💎</div>
-                <div>
-                  <p className="text-sm opacity-90">Point</p>
-                  <p className="text-3xl font-bold">{student.points || 0} XP</p>
-                </div>
-              </div>
-              <div className="flex gap-2 mt-3">
-                <Link
-                  href="/student/points"
-                  className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-lg transition"
-                >
-                  내역
-                </Link>
-                <Link
-                  href="/kiosk/shop"
-                  className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-lg transition"
-                >
-                  상점
-                </Link>
-              </div>
+        {/* 상단 통합 헤더 */}
+        <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
+          <div className="flex items-center justify-between gap-6">
+            {/* 왼쪽: 인사말 */}
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-800 mb-1">
+                Hello, {student.name} 👋
+              </h1>
+              <p className="text-gray-600 text-sm">
+                오늘도 좋은 하루 보내세요! 열심히 공부하고 즐거운 시간 되세요.
+              </p>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Link
-                href="/"
-                className="bg-white text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 transition text-sm shadow-md"
-              >
-                홈으로
-              </Link>
+            {/* 오른쪽: 포인트 + 출석 + 로그아웃 */}
+            <div className="flex items-center gap-4">
+              {/* 포인트 카드 */}
+              <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl shadow-md p-4 text-white">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="text-2xl">💎</div>
+                  <div>
+                    <p className="text-xs opacity-90">Point</p>
+                    <p className="text-2xl font-bold">{student.points || 0} XP</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Link
+                    href="/student/points"
+                    className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-1 rounded transition"
+                  >
+                    내역
+                  </Link>
+                  <Link
+                    href="/kiosk/shop"
+                    className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-1 rounded transition"
+                  >
+                    상점
+                  </Link>
+                </div>
+              </div>
+
+              {/* 출석 버튼 */}
+              <div>
+                {todayAttendance ? (
+                  <div className="text-center">
+                    <div className="bg-green-50 text-green-700 border-2 border-green-200 px-6 py-3 rounded-xl font-bold text-sm">
+                      ✅ 출석 완료
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {todayAttendance.time.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAttendanceModal(true)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm transition shadow-md"
+                  >
+                    📸 출석하기
+                  </button>
+                )}
+              </div>
+
+              {/* 로그아웃 */}
               <button
                 onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm shadow-md"
+                className="bg-red-500 text-white px-4 py-3 rounded-xl hover:bg-red-600 transition text-sm shadow-md font-medium"
               >
                 로그아웃
               </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 학생 정보 & 출석 카드 */}
-        <div className="bg-white rounded-2xl shadow-md p-8 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-3xl text-white font-bold shadow-lg">
-                {student.name[0]}
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-1">{student.name}</h2>
-                <p className="text-gray-600">
-                  {student.grade}학년 {student.class}반 {student.number}번
-                </p>
-              </div>
-            </div>
-
-            {/* 출석 버튼 */}
-            <div>
-              {todayAttendance ? (
-                <div className="text-center">
-                  <div className="bg-green-50 text-green-700 border-2 border-green-200 px-8 py-4 rounded-xl font-bold text-lg">
-                    ✅ 출석 완료
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {todayAttendance.time.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowAttendanceModal(true)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-md"
-                >
-                  📸 출석하기
-                </button>
-              )}
             </div>
           </div>
         </div>
