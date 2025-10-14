@@ -234,8 +234,8 @@ export default function StudentPraisePage() {
 
   if (loading || !currentStudent) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">로딩 중...</div>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-800 text-2xl">로딩 중...</div>
       </div>
     );
   }
@@ -244,17 +244,11 @@ export default function StudentPraisePage() {
   const otherStudents = students.filter(s => s.id !== currentStudent.id);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-yellow-50 p-8">
+    <div className="p-8">
       <div className="max-w-3xl mx-auto">
         {/* 헤더 */}
         <div className="mb-8">
-          <button
-            onClick={() => router.push('/student/dashboard')}
-            className="mb-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition"
-          >
-            ← 돌아가기
-          </button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">✨ 칭찬하기</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">✨ 칭찬하기</h1>
           <p className="text-gray-600">
             친구와 선생님의 좋은 모습을 칭찬해주세요. 칭찬은 큰 힘이 됩니다!
           </p>
