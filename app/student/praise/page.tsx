@@ -245,8 +245,7 @@ export default function StudentPraisePage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-3xl mx-auto">
-        {/* 헤더 */}
+      {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">✨ 칭찬하기</h1>
           <p className="text-gray-600">
@@ -402,7 +401,6 @@ export default function StudentPraisePage() {
             </div>
           </form>
         </div>
-      </div>
     </div>
   );
 }

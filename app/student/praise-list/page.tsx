@@ -157,8 +157,7 @@ export default function StudentPraiseListPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* 헤더 */}
+      {/* 헤더 */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -311,7 +310,6 @@ export default function StudentPraiseListPage() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }
