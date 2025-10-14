@@ -33,8 +33,8 @@ export default function ClassConfigPage() {
         setClassConfig(configData);
         setFormData({
           schoolName: configData.schoolName || '',
-          grade: configData.grade || '',
-          classNumber: configData.classNumber || '',
+          grade: String(configData.grade || ''),
+          classNumber: String(configData.classNumber || ''),
           teacherName: configData.teacherName || '',
         });
       }
@@ -52,8 +52,8 @@ export default function ClassConfigPage() {
     try {
       const configData = {
         schoolName: formData.schoolName,
-        grade: formData.grade,
-        classNumber: formData.classNumber,
+        grade: parseInt(formData.grade, 10),
+        classNumber: parseInt(formData.classNumber, 10),
         teacherName: formData.teacherName,
         updatedAt: new Date(),
       };
