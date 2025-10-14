@@ -98,7 +98,7 @@ export default function StudentPointsPage() {
 
   if (loading || !student) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="p-8 flex items-center justify-center">
         <p className="text-gray-500">로딩 중...</p>
       </div>
     );
@@ -113,22 +113,14 @@ export default function StudentPointsPage() {
     .reduce((sum, h) => sum + Math.abs(h.amount), 0);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">💰 포인트 내역</h1>
-          <Link
-            href="/student/dashboard"
-            className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            대시보드
-          </Link>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">💰 포인트 내역</h1>
+      </div>
 
       {/* 메인 */}
-      <main className="container mx-auto px-6 py-8">
+      <main>
         {/* 포인트 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">

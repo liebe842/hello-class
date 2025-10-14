@@ -192,8 +192,8 @@ export default function StudentBadgesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-600">로딩 중...</div>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-800 text-2xl">로딩 중...</div>
       </div>
     );
   }
@@ -212,27 +212,17 @@ export default function StudentBadgesPage() {
   const progress = Math.round((unlockedCount / totalCount) * 100);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">🏅 내 배지 컬렉션</h1>
-            <p className="text-yellow-100 text-sm mt-1">
-              {unlockedCount} / {totalCount} 배지 획득 ({progress}%)
-            </p>
-          </div>
-          <Link
-            href="/student/dashboard"
-            className="bg-white text-orange-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            대시보드
-          </Link>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">🏅 내 배지 컬렉션</h1>
+        <p className="text-gray-600 text-sm mt-1">
+          {unlockedCount} / {totalCount} 배지 획득 ({progress}%)
+        </p>
+      </div>
 
       {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
+      <main>
         {/* 새 배지 알림 */}
         {newBadges.length > 0 && (
           <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl shadow-lg p-6 mb-6 animate-pulse">
