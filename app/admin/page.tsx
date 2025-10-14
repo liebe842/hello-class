@@ -69,6 +69,16 @@ export default function AdminDashboard() {
 
       const recentActivities = pointHistorySnap.docs.map(doc => {
         const data = doc.data() as PointHistory;
+        // Firestore Timestamp를 Date로 변환
+        let timestamp: Date;
+        if (data.createdAt instanceof Date) {
+          timestamp = data.createdAt;
+        } else if (data.createdAt && typeof data.createdAt === 'object' && 'toDate' in data.createdAt) {
+          timestamp = (data.createdAt as { toDate: () => Date }).toDate();
+        } else {
+          timestamp = new Date();
+        }
+
         return {
           id: doc.id,
           type: data.source === 'assignment' ? 'assignment' :
@@ -76,7 +86,7 @@ export default function AdminDashboard() {
                 data.source === 'goal' ? 'goal' : 'point',
           title: data.studentName,
           description: data.description,
-          timestamp: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+          timestamp,
           icon: '',
           color: '',
         };
