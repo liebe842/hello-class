@@ -113,17 +113,32 @@ export default function StudentDashboardPage() {
           setTodayClasses(classes);
         }
 
-        // 급식 (오늘)
-        const mealSnap = await getDocs(collection(db, 'meals'));
-        const todayMealData = mealSnap.docs
-          .map(doc => ({
-            id: doc.id,
-            date: doc.data().date,
-            menu: doc.data().menu || []
-          }))
-          .find(meal => meal.date === today);
-        if (todayMealData) {
-          setTodayMeal(todayMealData as MealData);
+        // 급식 (오늘) - NEIS API 호출
+        try {
+          const todayFormatted = today.replace(/-/g, ''); // YYYY-MM-DD → YYYYMMDD
+          const mealResponse = await fetch(`/api/neis/meal?date=${todayFormatted}`);
+          const mealData = await mealResponse.json();
+
+          if (mealData.meals && mealData.meals.length > 0) {
+            // 중식만 표시
+            const lunch = mealData.meals.find((m: { mealName: string }) => m.mealName === '중식');
+            if (lunch) {
+              const menu = lunch.dishName
+                .replace(/<br\/>/g, '\n')
+                .replace(/\([0-9.]+\)/g, '')
+                .trim()
+                .split('\n')
+                .filter((item: string) => item.trim());
+
+              setTodayMeal({
+                id: todayFormatted,
+                date: today,
+                menu
+              });
+            }
+          }
+        } catch (error) {
+          console.error('급식 정보 가져오기 실패:', error);
         }
 
         // 과제 (미제출 + 최근 마감 순)
