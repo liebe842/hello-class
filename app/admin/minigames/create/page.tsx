@@ -78,7 +78,19 @@ function draw() {
       }
 
       // Firestore에 게임 정보 저장 (undefined 필드 제외)
-      const gameData: any = {
+      const gameData: {
+        title: string;
+        description: string;
+        type: MiniGameType;
+        createdBy: string;
+        createdByName: string;
+        playCount: number;
+        isActive: boolean;
+        createdAt: ReturnType<typeof Timestamp.now>;
+        gameUrl?: string;
+        p5Code?: string;
+        thumbnailUrl?: string;
+      } = {
         title: title.trim(),
         description: description.trim(),
         type: gameType,

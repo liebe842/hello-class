@@ -29,7 +29,7 @@ export default function P5Canvas({ code, width = 800, height = 600 }: P5CanvasPr
     // p5.js 라이브러리 로드 (CDN 사용)
     const loadP5 = () => {
       return new Promise<void>((resolve, reject) => {
-        if ((window as any).p5) {
+        if (typeof (window as Window & { p5?: unknown }).p5 !== 'undefined') {
           resolve();
           return;
         }
@@ -90,10 +90,13 @@ export default function P5Canvas({ code, width = 800, height = 600 }: P5CanvasPr
         scriptRef.current.remove();
       }
 
-      // p5 인스턴스 제거
-      const canvas = containerRef.current?.querySelector('canvas');
-      if (canvas) {
-        canvas.remove();
+      // p5 인스턴스 제거 - containerRef.current를 변수에 저장
+      const container = containerRef.current;
+      if (container) {
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+          canvas.remove();
+        }
       }
     };
   }, [code, width, height]);

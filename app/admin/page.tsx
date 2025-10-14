@@ -11,8 +11,8 @@ import type { Student, PointHistory } from '@/lib/types';
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [attendanceData, setAttendanceData] = useState({ present: 0, absent: 0, total: 0 });
-  const [statsData, setStatsData] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
+  const [statsData, setStatsData] = useState<{ label: string; value: number; max: number; color: string }[]>([]);
+  const [activities, setActivities] = useState<{ id: string; type: string; title: string; description: string; timestamp: Date; icon: string; color: string }[]>([]);
 
   useEffect(() => {
     fetchDashboardData();

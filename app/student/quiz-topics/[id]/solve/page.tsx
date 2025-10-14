@@ -53,6 +53,7 @@ export default function QuizSolvePage() {
     if (topicId) {
       fetchTopicAndQuizzes();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicId]);
 
   const fetchTopicAndQuizzes = async () => {

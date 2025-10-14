@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(npm install)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: 학생 대시보드 UI 전면 개편 및 실시간 정보 표시\n\n학생 대시보드를 현대적이고 직관적인 인터페이스로 개선했습니다.\n\n주요 변경사항:\n- 사이드바 내비게이션 추가 (6개 핵심 메뉴)\n- 오늘의 정보 섹션 신규 추가 (수업, 일정, 과제)\n- 레이아웃 재구성 (배경, 헤더, 포인트 표시)\n- 관리자 사이드바 링크 수정 (404 해결)\n- 과제 제출 Ctrl+V 붙여넣기 개선\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git config:*)",
+      "Bash(npm run build)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: TypeScript 타입 안전성 개선 - any 타입 제거\n\nVercel 빌드 시 ESLint 오류를 수정했습니다.\n\n주요 변경사항:\n- ScheduleEvent, Assignment, MealData 인터페이스 추가\n- useState 타입 명시 (any[] → 구체적 타입)\n- 배열 메서드 콜백에서 any 타입 제거\n- 타입 가드 사용 (filter에서 a is Assignment)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(npx next lint)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

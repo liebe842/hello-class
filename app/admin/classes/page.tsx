@@ -206,7 +206,7 @@ export default function ClassesPage() {
 
             {!timetable && (
               <div className="mt-4 text-sm text-gray-500">
-                💡 시간표를 등록하려면 "시간표 편집" 버튼을 클릭하세요.
+                💡 시간표를 등록하려면 &quot;시간표 편집&quot; 버튼을 클릭하세요.
               </div>
             )}
           </div>
@@ -319,7 +319,7 @@ export default function ClassesPage() {
               {!classConfig && (
                 <div className="md:col-span-2 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
                   <p className="text-yellow-800">
-                    💡 학급 정보를 등록하려면 "정보 편집" 버튼을 클릭하세요.
+                    💡 학급 정보를 등록하려면 &quot;정보 편집&quot; 버튼을 클릭하세요.
                   </p>
                 </div>
               )}
