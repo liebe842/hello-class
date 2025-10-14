@@ -9,7 +9,6 @@ import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, Timestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import type { Student, Attendance, EmotionType } from '@/lib/types';
-import StudentSidebar from '@/components/StudentSidebar';
 
 // 타입 정의
 interface ScheduleEvent {
@@ -360,12 +359,7 @@ export default function StudentDashboardPage() {
     .map(att => att.emotion);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* 사이드바 */}
-      <StudentSidebar studentName={student.name} studentInitial={student.name[0]} />
-
-      {/* 메인 콘텐츠 */}
-      <main className="flex-1 lg:ml-64 p-8">
+    <div className="p-8">
         {/* 상단 인사말 & 포인트 */}
         <div className="flex justify-between items-start mb-8">
           <div>
@@ -729,7 +723,6 @@ export default function StudentDashboardPage() {
             </div>
           </div>
         </div>
-      </main>
 
       {/* 출석 체크 모달 */}
       {showAttendanceModal && (
