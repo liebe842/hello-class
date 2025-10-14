@@ -149,13 +149,13 @@ export default function StudentDashboardPage() {
         now.setHours(0, 0, 0, 0); // 오늘 00:00:00
 
         const pendingAssignments = assignmentsData
-          .filter((a): a is Assignment => {
+          .filter(a => {
             const dueDate = new Date(a.dueDate);
             dueDate.setHours(23, 59, 59, 999); // 마감일 23:59:59
             return !submittedIds.includes(a.id) && dueDate >= now;
           })
           .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
-          .slice(0, 5); // 5개까지 표시
+          .slice(0, 5) as Assignment[]; // 5개까지 표시
         setAssignments(pendingAssignments);
 
         setLoading(false);
