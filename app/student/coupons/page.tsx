@@ -117,7 +117,7 @@ export default function StudentCouponsPage() {
 
   if (loading || !student) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="flex items-center justify-center p-8">
         <p className="text-gray-500">로딩 중...</p>
       </div>
     );
@@ -126,7 +126,7 @@ export default function StudentCouponsPage() {
   const unusedCount = coupons.filter(c => c.status === 'unused').length;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="p-8">
       {/* 헤더 */}
       <header className="bg-purple-600 text-white shadow-md">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">

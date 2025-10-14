@@ -193,8 +193,8 @@ export default function StudentGoalsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-        <div className="text-white text-2xl">로딩 중...</div>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-800 text-2xl">로딩 중...</div>
       </div>
     );
   }
@@ -207,30 +207,20 @@ export default function StudentGoalsPage() {
   const failedGoals = goals.filter(g => g.status === 'failed');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 to-pink-500">
+    <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">🎯 나의 목표</h1>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowGoalModal(true)}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold transition"
-            >
-              ➕ 새 목표 만들기
-            </button>
-            <Link
-              href="/student/dashboard"
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
-            >
-              대시보드로
-            </Link>
-          </div>
-        </div>
-      </header>
+      <div className="mb-6 flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-800">🎯 나의 목표</h1>
+        <button
+          onClick={() => setShowGoalModal(true)}
+          className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold transition"
+        >
+          ➕ 새 목표 만들기
+        </button>
+      </div>
 
       {/* 메인 */}
-      <main className="container mx-auto px-6 py-8">
+      <main>
         {/* 안내 메시지 */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-800 mb-2">💡 목표 설정 팁</h2>
@@ -244,7 +234,7 @@ export default function StudentGoalsPage() {
         {/* 진행 중인 목표 */}
         {activeGoals.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-4">🔥 진행 중인 목표</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">🔥 진행 중인 목표</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {activeGoals.map(goal => {
                 const progress = getProgress(goal);
@@ -315,7 +305,7 @@ export default function StudentGoalsPage() {
         {/* 완료한 목표 */}
         {completedGoals.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-4">🏆 완료한 목표</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">🏆 완료한 목표</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {completedGoals.map(goal => (
                 <div key={goal.id} className="bg-gradient-to-br from-green-100 to-teal-100 rounded-xl shadow-lg p-6 border-2 border-green-400">

@@ -135,7 +135,7 @@ export default function StudentStatisticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="flex items-center justify-center p-8">
         <div className="text-gray-600">로딩 중...</div>
       </div>
     );
@@ -157,7 +157,7 @@ export default function StudentStatisticsPage() {
     .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="p-8">
       {/* 헤더 */}
       <header className="bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">

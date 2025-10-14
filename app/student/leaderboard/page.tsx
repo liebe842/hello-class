@@ -122,14 +122,14 @@ export default function LeaderboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="flex items-center justify-center p-8">
         <div className="text-gray-600">로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="p-8">
       {/* 헤더 */}
       <header className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
