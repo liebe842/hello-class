@@ -79,7 +79,7 @@ export default function StudentDashboardPage() {
         })) as Attendance[];
         setAttendanceData(data);
 
-        // 학사일정 (오늘 + 앞으로 7일)
+        // 학사일정 (오늘 + 앞으로 30일) - 더 많이 표시
         const scheduleSnap = await getDocs(collection(db, 'schoolSchedules'));
         const schedules = scheduleSnap.docs
           .map(doc => ({
@@ -90,15 +90,15 @@ export default function StudentDashboardPage() {
             const startDate = new Date(schedule.startDate);
             const endDate = schedule.endDate ? new Date(schedule.endDate) : startDate;
             const now = new Date();
-            const weekLater = new Date();
-            weekLater.setDate(weekLater.getDate() + 7);
-            return (startDate <= weekLater && endDate >= now);
+            const monthLater = new Date();
+            monthLater.setDate(monthLater.getDate() + 30);
+            return (startDate <= monthLater && endDate >= now);
           })
           .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-          .slice(0, 3);
+          .slice(0, 5); // 5개까지 표시
         setTodaySchedule(schedules);
 
-        // 시간표 (오늘)
+        // 시간표 (오늘) - 6교시까지 모두 표시
         const timetableSnap = await getDocs(collection(db, 'timetable'));
         if (!timetableSnap.empty) {
           const timetableData = timetableSnap.docs[0].data();
@@ -107,19 +107,36 @@ export default function StudentDashboardPage() {
           for (let period = 1; period <= 6; period++) {
             const key = `${dayOfWeek}-${period}`;
             if (schedule[key]) {
-              classes.push(schedule[key]);
+              classes.push(`${period}교시: ${schedule[key]}`);
             }
           }
           setTodayClasses(classes);
         }
 
+        // 급식 (오늘)
+        const mealSnap = await getDocs(collection(db, 'meals'));
+        const todayMealData = mealSnap.docs
+          .map(doc => ({
+            id: doc.id,
+            date: doc.data().date,
+            menu: doc.data().menu || []
+          }))
+          .find(meal => meal.date === today);
+        if (todayMealData) {
+          setTodayMeal(todayMealData as MealData);
+        }
+
         // 과제 (미제출 + 최근 마감 순)
         const assignmentsSnap = await getDocs(collection(db, 'assignments'));
-        const assignmentsData = assignmentsSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          dueDate: doc.data().dueDate?.toDate(),
-        }));
+        const assignmentsData = assignmentsSnap.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            dueDate: data.dueDate?.toDate() || new Date(),
+            description: data.description,
+          };
+        });
 
         // 제출 기록 확인
         const submissionsRef = collection(db, 'assignmentSubmissions');
@@ -127,10 +144,18 @@ export default function StudentDashboardPage() {
         const submissionsSnap = await getDocs(submissionsQuery);
         const submittedIds = submissionsSnap.docs.map(doc => doc.data().assignmentId);
 
+        // 미제출 과제만 필터링 (마감일이 지나지 않은 것만)
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // 오늘 00:00:00
+
         const pendingAssignments = assignmentsData
-          .filter((a): a is Assignment => !submittedIds.includes(a.id) && a.dueDate >= new Date())
+          .filter((a): a is Assignment => {
+            const dueDate = new Date(a.dueDate);
+            dueDate.setHours(23, 59, 59, 999); // 마감일 23:59:59
+            return !submittedIds.includes(a.id) && dueDate >= now;
+          })
           .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
-          .slice(0, 3);
+          .slice(0, 5); // 5개까지 표시
         setAssignments(pendingAssignments);
 
         setLoading(false);
@@ -429,7 +454,7 @@ export default function StudentDashboardPage() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">오늘의 정보</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 오늘 수업 */}
+            {/* 오늘 수업 - 6교시 전체 표시 */}
             <Link href="/student/timetable">
               <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 hover:shadow-md hover:border-cyan-300 transition cursor-pointer">
                 <div className="flex items-center gap-2 mb-3">
@@ -438,14 +463,11 @@ export default function StudentDashboardPage() {
                 </div>
                 {todayClasses.length > 0 ? (
                   <div className="space-y-1">
-                    {todayClasses.slice(0, 3).map((cls, idx) => (
+                    {todayClasses.map((cls, idx) => (
                       <p key={idx} className="text-sm text-gray-700">
-                        {idx + 1}교시: {cls}
+                        {cls}
                       </p>
                     ))}
-                    {todayClasses.length > 3 && (
-                      <p className="text-xs text-gray-500">외 {todayClasses.length - 3}개</p>
-                    )}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500">등록된 시간표가 없습니다</p>
@@ -453,7 +475,7 @@ export default function StudentDashboardPage() {
               </div>
             </Link>
 
-            {/* 다가오는 일정 */}
+            {/* 다가오는 일정 - 날짜 포함 */}
             <Link href="/student/school-schedule">
               <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 hover:shadow-md hover:border-teal-300 transition cursor-pointer">
                 <div className="flex items-center gap-2 mb-3">
@@ -462,14 +484,42 @@ export default function StudentDashboardPage() {
                 </div>
                 {todaySchedule.length > 0 ? (
                   <div className="space-y-1">
-                    {todaySchedule.map((schedule) => (
-                      <p key={schedule.id} className="text-sm text-gray-700 truncate">
-                        {schedule.eventName}
-                      </p>
-                    ))}
+                    {todaySchedule.map((schedule) => {
+                      const date = new Date(schedule.startDate);
+                      const dateStr = `${date.getMonth() + 1}.${date.getDate()}`;
+                      return (
+                        <p key={schedule.id} className="text-sm text-gray-700 truncate">
+                          {schedule.eventName} ({dateStr})
+                        </p>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500">예정된 일정이 없습니다</p>
+                )}
+              </div>
+            </Link>
+
+            {/* 오늘 급식 메뉴 */}
+            <Link href="/student/meal">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md hover:border-yellow-300 transition cursor-pointer">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-2xl">🍽️</div>
+                  <h3 className="font-bold text-gray-800">오늘 급식</h3>
+                </div>
+                {todayMeal && todayMeal.menu.length > 0 ? (
+                  <div className="space-y-1">
+                    {todayMeal.menu.slice(0, 4).map((item, idx) => (
+                      <p key={idx} className="text-sm text-gray-700 truncate">
+                        • {item}
+                      </p>
+                    ))}
+                    {todayMeal.menu.length > 4 && (
+                      <p className="text-xs text-gray-500">외 {todayMeal.menu.length - 4}개</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">오늘 급식 정보가 없습니다</p>
                 )}
               </div>
             </Link>
@@ -497,31 +547,6 @@ export default function StudentDashboardPage() {
                 )}
               </div>
             </Link>
-
-            {/* 빠른 메뉴 */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-bold text-gray-800 mb-3">빠른 메뉴</h3>
-              <div className="grid grid-cols-3 gap-2">
-                <Link href="/student/meal">
-                  <div className="text-center p-2 hover:bg-gray-50 rounded transition">
-                    <div className="text-2xl mb-1">🍽️</div>
-                    <p className="text-xs text-gray-700">급식</p>
-                  </div>
-                </Link>
-                <Link href="/student/praise">
-                  <div className="text-center p-2 hover:bg-gray-50 rounded transition">
-                    <div className="text-2xl mb-1">✨</div>
-                    <p className="text-xs text-gray-700">칭찬</p>
-                  </div>
-                </Link>
-                <Link href="/student/goals">
-                  <div className="text-center p-2 hover:bg-gray-50 rounded transition">
-                    <div className="text-2xl mb-1">🎯</div>
-                    <p className="text-xs text-gray-700">목표</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
 
