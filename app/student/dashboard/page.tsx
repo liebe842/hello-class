@@ -503,12 +503,12 @@ export default function StudentDashboardPage() {
               </div>
             </Link>
 
-            {/* 미제출 과제 */}
+            {/* 제출해야 할 과제 */}
             <Link href="/student/assignments">
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 hover:shadow-md hover:border-orange-300 transition cursor-pointer h-64 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="text-2xl">📝</div>
-                  <h3 className="font-bold text-gray-800">미제출 과제</h3>
+                  <h3 className="font-bold text-gray-800">제출해야 할 과제</h3>
                 </div>
                 {assignments.length > 0 ? (
                   <div className="space-y-2 overflow-y-auto flex-1">
@@ -544,95 +544,17 @@ export default function StudentDashboardPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">미제출 과제가 없습니다</p>
+                  <p className="text-sm text-gray-500">제출해야 할 과제가 없습니다</p>
                 )}
               </div>
             </Link>
           </div>
         </div>
 
-        {/* 대시보드 정보 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* 출석 현황 */}
+        {/* 출석 기록 섹션 */}
+        <div className="space-y-6">
+          {/* 출석 기록 테이블 */}
           <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">📅 출석 현황</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">이번 달 출석</span>
-                <span className="font-bold text-green-600">{thisMonthAttendance.length}일</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">출석률</span>
-                <span className="font-bold text-blue-600">{attendanceRate}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">전체 출석</span>
-                <span className="font-bold text-purple-600">{attendanceData.length}일</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 최근 감정 */}
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">😊 최근 감정</h3>
-            {recentEmotions.length === 0 ? (
-              <p className="text-gray-500">아직 출석 기록이 없습니다.</p>
-            ) : (
-              <div className="flex gap-2 flex-wrap">
-                {recentEmotions.map((emotion, index) => (
-                  <span
-                    key={index}
-                    className="text-4xl"
-                    title={`${index + 1}일 전`}
-                  >
-                    {emotionLabels[emotion]}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 나의 출석 사진 */}
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">📸 최근 출석 사진</h3>
-            {attendanceData.length === 0 ? (
-              <p className="text-gray-500">출석 사진이 없습니다.</p>
-            ) : (
-              <div className="space-y-3">
-                {attendanceData
-                  .slice(-3)
-                  .reverse()
-                  .map((att) => (
-                    <div key={att.id} className="flex items-center gap-3">
-                      {att.photoUrl ? (
-                        <Image
-                          src={att.photoUrl}
-                          alt="출석 사진"
-                          width={64}
-                          height={64}
-                          className="w-16 h-16 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <span className="text-2xl">👤</span>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">
-                          {new Date(att.date).toLocaleDateString('ko-KR')}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {emotionLabels[att.emotion]} {att.emotion}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-
-          {/* 출석 통계 */}
-          <div className="bg-white rounded-xl shadow-md p-6 lg:col-span-2">
             <h3 className="text-xl font-bold mb-4 text-gray-800">📊 출석 기록</h3>
             {attendanceData.length === 0 ? (
               <p className="text-gray-500">출석 기록이 없습니다.</p>
@@ -646,6 +568,9 @@ export default function StudentDashboardPage() {
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                         시간
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                        사진
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                         감정
@@ -667,8 +592,24 @@ export default function StudentDashboardPage() {
                               minute: '2-digit',
                             })}
                           </td>
+                          <td className="px-4 py-3 text-center">
+                            {att.photoUrl ? (
+                              <Image
+                                src={att.photoUrl}
+                                alt="출석 사진"
+                                width={48}
+                                height={48}
+                                className="w-12 h-12 rounded-lg object-cover mx-auto"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto">
+                                <span className="text-xl">👤</span>
+                              </div>
+                            )}
+                          </td>
                           <td className="px-4 py-3">
-                            <span className="text-2xl">{emotionLabels[att.emotion]}</span>
+                            <span className="text-2xl">{emotionEmojis[att.emotion]}</span>
+                            <span className="text-sm text-gray-600 ml-2">{emotionLabels[att.emotion]}</span>
                           </td>
                         </tr>
                       ))}
@@ -678,28 +619,48 @@ export default function StudentDashboardPage() {
             )}
           </div>
 
-          {/* 나의 목표 */}
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">🎯 나의 목표</h3>
-            <div className="space-y-3">
-              <div className="p-3 bg-green-50 rounded-lg">
-                <p className="text-sm font-semibold text-green-800">매일 출석하기</p>
-                <div className="mt-2 bg-green-200 rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full"
-                    style={{ width: `${attendanceRate}%` }}
-                  />
+          {/* 나의 목표 + 최근 감정 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 나의 목표 */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold mb-4 text-gray-800">🎯 나의 목표</h3>
+              <div className="space-y-3">
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <p className="text-sm font-semibold text-green-800">매일 출석하기</p>
+                  <div className="mt-2 bg-green-200 rounded-full h-2">
+                    <div
+                      className="bg-green-500 h-2 rounded-full"
+                      style={{ width: `${attendanceRate}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-green-600 mt-1">{attendanceRate}% 달성</p>
                 </div>
-                <p className="text-xs text-green-600 mt-1">{attendanceRate}% 달성</p>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm font-semibold text-blue-800">
+                    긍정적인 감정 유지하기
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    최근 7일간 감정 기록을 확인해보세요!
+                  </p>
+                </div>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm font-semibold text-blue-800">
-                  긍정적인 감정 유지하기
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  최근 7일간 감정 기록을 확인해보세요!
-                </p>
-              </div>
+            </div>
+
+            {/* 최근 감정 */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold mb-4 text-gray-800">😊 최근 감정</h3>
+              {recentEmotions.length === 0 ? (
+                <p className="text-gray-500">아직 출석 기록이 없습니다.</p>
+              ) : (
+                <div className="flex gap-3 flex-wrap">
+                  {recentEmotions.map((emotion, index) => (
+                    <div key={index} className="text-center">
+                      <span className="text-4xl block">{emotionEmojis[emotion]}</span>
+                      <span className="text-xs text-gray-500">{emotionLabels[emotion]}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
