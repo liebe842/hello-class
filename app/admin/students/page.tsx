@@ -54,6 +54,7 @@ export default function StudentsManagePage() {
     try {
       await addDoc(collection(db, 'students'), {
         ...formData,
+        points: 0, // 초기 포인트는 0
         createdAt: new Date(),
       });
       alert('학생이 등록되었습니다!');
@@ -254,6 +255,7 @@ export default function StudentsManagePage() {
           class: parseInt(classNum),
           number: parseInt(number),
           password,
+          points: 0, // 초기 포인트는 0
         };
       }).filter(data => data.name && data.grade && data.class && data.number && data.password);
 
