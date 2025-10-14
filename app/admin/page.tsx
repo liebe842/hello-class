@@ -12,7 +12,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [attendanceData, setAttendanceData] = useState({ present: 0, absent: 0, total: 0 });
   const [statsData, setStatsData] = useState<{ label: string; value: number; max: number; color: string }[]>([]);
-  const [activities, setActivities] = useState<{ id: string; type: string; title: string; description: string; timestamp: Date; icon: string; color: string }[]>([]);
+  const [activities, setActivities] = useState<{ id: string; type: 'assignment' | 'goal' | 'praise' | 'point' | 'coupon'; title: string; description: string; timestamp: Date; icon: string; color: string }[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -79,11 +79,23 @@ export default function AdminDashboard() {
           timestamp = new Date();
         }
 
+        // type을 명시적으로 지정
+        let type: 'assignment' | 'goal' | 'praise' | 'point' | 'coupon';
+        if (data.source === 'assignment') {
+          type = 'assignment';
+        } else if (data.source === 'praise_received' || data.source === 'praise_given') {
+          type = 'praise';
+        } else if (data.source === 'goal') {
+          type = 'goal';
+        } else if (data.source === 'coupon') {
+          type = 'coupon';
+        } else {
+          type = 'point';
+        }
+
         return {
           id: doc.id,
-          type: data.source === 'assignment' ? 'assignment' :
-                data.source === 'praise_received' || data.source === 'praise_given' ? 'praise' :
-                data.source === 'goal' ? 'goal' : 'point',
+          type,
           title: data.studentName,
           description: data.description,
           timestamp,
