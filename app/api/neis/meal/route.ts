@@ -14,21 +14,39 @@ export async function GET(request: NextRequest) {
     // Firestore에서 NEIS 설정 가져오기
     const settingsSnap = await getDocs(collection(db, 'neisSettings'));
     if (settingsSnap.empty) {
-      return NextResponse.json({ error: 'NEIS 설정이 없습니다' }, { status: 404 });
+      return NextResponse.json({
+        error: 'NEIS 설정이 없습니다',
+        details: 'Firestore의 neisSettings 컬렉션에 설정을 추가해주세요.'
+      }, { status: 404 });
     }
 
     const settings = settingsSnap.docs[0].data();
     const { atptOfcdcScCode, sdSchulCode, apiKey } = settings;
 
+    // 필수 값 검증
+    if (!atptOfcdcScCode || !sdSchulCode || !apiKey) {
+      return NextResponse.json({
+        error: 'NEIS 설정 값이 누락되었습니다',
+        details: `atptOfcdcScCode: ${!!atptOfcdcScCode}, sdSchulCode: ${!!sdSchulCode}, apiKey: ${!!apiKey}`
+      }, { status: 400 });
+    }
+
     // NEIS API 호출
     const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${apiKey}&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${atptOfcdcScCode}&SD_SCHUL_CODE=${sdSchulCode}&MLSV_YMD=${date}`;
+
+    console.log('NEIS API 호출:', { date, atptOfcdcScCode, sdSchulCode, apiKeyLength: apiKey?.length });
 
     const response = await fetch(url);
     const data = await response.json();
 
     // 에러 처리
     if (data.RESULT) {
-      return NextResponse.json({ error: data.RESULT.MESSAGE }, { status: 400 });
+      console.error('NEIS API 오류:', data.RESULT);
+      return NextResponse.json({
+        error: data.RESULT.MESSAGE || 'NEIS API 오류',
+        code: data.RESULT.CODE,
+        details: data.RESULT
+      }, { status: 400 });
     }
 
     // 데이터 가공

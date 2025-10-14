@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
 
 interface Meal {
   date: string;
-  menu: string[];
+  mealName: string;
+  dishName: string;
+  calInfo: string;
 }
 
 export default function StudentMealPage() {
   const [loading, setLoading] = useState(true);
-  const [weekMeals, setWeekMeals] = useState<{[key: string]: Meal}>({});
+  const [weekMeals, setWeekMeals] = useState<{[key: string]: Meal[]}>({});
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -21,18 +21,26 @@ export default function StudentMealPage() {
 
   const fetchWeekMeals = async () => {
     try {
-      // Firestore에서 직접 급식 데이터 가져오기
-      const mealsSnap = await getDocs(collection(db, 'meals'));
-      const meals: {[key: string]: Meal} = {};
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // 0: 일, 1: 월, ..., 5: 금
+      const thisMonday = new Date(today);
+      thisMonday.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)); // 이번 주 월요일
 
-      mealsSnap.docs.forEach(doc => {
-        const data = doc.data();
-        const dateStr = data.date.replace(/-/g, ''); // YYYY-MM-DD → YYYYMMDD
-        meals[dateStr] = {
-          date: data.date,
-          menu: data.menu || []
-        };
-      });
+      const meals: {[key: string]: Meal[]} = {};
+
+      // 이번 주 + 다음 주 월~금 급식 가져오기 (14일 = 2주)
+      for (let i = 0; i < 14; i++) {
+        const date = new Date(thisMonday);
+        date.setDate(thisMonday.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+
+        const response = await fetch(`/api/neis/meal?date=${dateStr}`);
+        const data = await response.json();
+
+        if (data.meals && data.meals.length > 0) {
+          meals[dateStr] = data.meals;
+        }
+      }
 
       setWeekMeals(meals);
       setLoading(false);
@@ -52,6 +60,13 @@ export default function StudentMealPage() {
     return `${month}/${day} (${days[date.getDay()]})`;
   };
 
+  const formatDishName = (dishName: string) => {
+    // <br/> 태그를 줄바꿈으로 변환하고 알레르기 정보 제거
+    return dishName
+      .replace(/<br\/>/g, '\n')
+      .replace(/\([0-9.]+\)/g, '') // 알레르기 번호 제거
+      .trim();
+  };
 
   if (loading) {
     return (
@@ -92,42 +107,49 @@ export default function StudentMealPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Object.entries(weekMeals)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([dateStr, meal]) => {
-                const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
-                const isToday = dateStr === today;
+            {Object.entries(weekMeals).map(([date, meals]) => {
+              const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+              const isToday = date === today;
 
-                return (
-                  <div
-                    key={dateStr}
-                    className={`
-                      bg-white rounded-2xl shadow-lg p-6
-                      ${isToday ? 'ring-4 ring-yellow-400' : ''}
-                    `}
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <h2 className="text-xl font-bold text-gray-800">
-                        {formatDate(dateStr)}
-                      </h2>
-                      {isToday && (
-                        <span className="px-2 py-1 bg-yellow-400 text-yellow-900 text-xs font-bold rounded">
-                          오늘
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      {meal.menu.map((item, idx) => (
-                        <div key={idx} className="flex items-start">
-                          <span className="text-blue-600 mr-2">•</span>
-                          <span className="text-sm text-gray-700">{item}</span>
-                        </div>
-                      ))}
-                    </div>
+              return (
+                <div
+                  key={date}
+                  className={`
+                    bg-white rounded-2xl shadow-lg p-6
+                    ${isToday ? 'ring-4 ring-yellow-400' : ''}
+                  `}
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <h2 className="text-xl font-bold text-gray-800">
+                      {formatDate(date)}
+                    </h2>
+                    {isToday && (
+                      <span className="px-2 py-1 bg-yellow-400 text-yellow-900 text-xs font-bold rounded">
+                        오늘
+                      </span>
+                    )}
                   </div>
-                );
-              })}
+
+                  <div className="space-y-4">
+                    {meals.map((meal, idx) => (
+                      <div key={idx} className="border-t pt-4 first:border-t-0 first:pt-0">
+                        <h3 className="text-sm font-bold text-blue-600 mb-2">
+                          {meal.mealName}
+                        </h3>
+                        <div className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                          {formatDishName(meal.dishName)}
+                        </div>
+                        {meal.calInfo && (
+                          <p className="text-xs text-gray-500 mt-2">
+                            {meal.calInfo}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
