@@ -118,32 +118,21 @@ export default function StudentQuizTopicsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-600">로딩 중...</div>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-800 text-2xl">로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-purple-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">퀴즈 주제</h1>
-            <p className="text-purple-100 text-sm mt-1">{studentData.name} 학생</p>
-          </div>
-          <Link
-            href="/student/dashboard"
-            className="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            대시보드
-          </Link>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">🎯 퀴즈 주제</h1>
+      </div>
 
       {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
+      <main>
         {/* 안내 메시지 */}
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-lg">
           <div className="flex">

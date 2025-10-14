@@ -306,8 +306,8 @@ export default function StudentAssignmentsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-        <div className="text-white text-2xl">로딩 중...</div>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-800 text-2xl">로딩 중...</div>
       </div>
     );
   }
@@ -315,22 +315,14 @@ export default function StudentAssignmentsPage() {
   if (!student) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 to-pink-500">
+    <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">📝 나의 과제</h1>
-          <Link
-            href="/student/dashboard"
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
-          >
-            대시보드로
-          </Link>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">📝 나의 과제</h1>
+      </div>
 
       {/* 메인 */}
-      <main className="container mx-auto px-6 py-8">
+      <main>
         <div className="space-y-4">
           {assignments.length === 0 ? (
             <div className="bg-white rounded-xl shadow-md p-12 text-center">
