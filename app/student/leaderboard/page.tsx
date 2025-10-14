@@ -131,23 +131,13 @@ export default function LeaderboardPage() {
   return (
     <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">🏆 리더보드</h1>
-            <p className="text-yellow-100 text-sm mt-1">우리 반 최고는 누구?</p>
-          </div>
-          <Link
-            href="/student/dashboard"
-            className="bg-white text-orange-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            대시보드
-          </Link>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">🏆 리더보드</h1>
+        <p className="text-gray-600 text-sm mt-1">우리 반 최고는 누구?</p>
+      </div>
 
       {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
+      <main>
         {/* 탭 */}
         <div className="bg-white rounded-xl shadow-md mb-6">
           <div className="flex border-b">

@@ -159,23 +159,13 @@ export default function StudentStatisticsPage() {
   return (
     <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">📊 내 통계</h1>
-            <p className="text-blue-100 text-sm mt-1">{studentData.name}님의 학습 통계</p>
-          </div>
-          <Link
-            href="/student/dashboard"
-            className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            대시보드
-          </Link>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">📊 내 통계</h1>
+        <p className="text-gray-600 text-sm mt-1">{studentData.name}님의 학습 통계</p>
+      </div>
 
       {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
+      <main>
         {/* 전체 요약 카드 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow-md p-6">
