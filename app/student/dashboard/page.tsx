@@ -8,7 +8,7 @@ import Webcam from 'react-webcam';
 import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, Timestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
-import type { Student, Attendance, EmotionType } from '@/lib/types';
+import type { Student, Attendance, EmotionType, StudentGoal } from '@/lib/types';
 
 // 타입 정의
 interface ScheduleEvent {
@@ -48,7 +48,7 @@ export default function StudentDashboardPage() {
   const [todayMeal, setTodayMeal] = useState<MealData | null>(null);
   const [todayClasses, setTodayClasses] = useState<string[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [activeGoals, setActiveGoals] = useState<any[]>([]);
+  const [activeGoals, setActiveGoals] = useState<StudentGoal[]>([]);
   const [leaderboard, setLeaderboard] = useState<Student[]>([]);
   const [myRank, setMyRank] = useState<number>(0);
 
@@ -585,7 +585,7 @@ export default function StudentDashboardPage() {
                 <h3 className="text-xl font-bold mb-4 text-gray-800">🎯 나의 목표</h3>
                 {activeGoals.length > 0 ? (
                   <div className="space-y-3">
-                    {activeGoals.slice(0, 2).map((goal: any) => {
+                    {activeGoals.slice(0, 2).map((goal) => {
                       const progress = Math.round((goal.currentCount / goal.targetCount) * 100);
                       return (
                         <div key={goal.id} className="p-3 bg-purple-50 rounded-lg">
