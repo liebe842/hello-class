@@ -200,11 +200,13 @@ export interface BadgeCheckData {
   othersQuizzesSolved: number;
   leaderboardRank: number | null;
   subjectAverages: Record<string, number>;
-  happyEmotionCount: number;        // '행복해요' 감정 선택 횟수
-  excitedEmotionCount: number;      // '신나요' 감정 선택 횟수
-  completedGoalsCount: number;      // 완료한 목표 개수
-  photoPublicCount: number;         // 사진 공개한 출석 횟수
-  praisesGivenCount: number;        // 작성한 칭찬 횟수
+  happyEmotionCount?: number;        // '행복해요' 감정 선택 횟수
+  excitedEmotionCount?: number;      // '신나요' 감정 선택 횟수
+  completedGoalsCount?: number;      // 완료한 목표 개수
+  photoPublicCount?: number;         // 사진 공개한 출석 횟수
+  praisesGivenCount?: number;        // 작성한 칭찬 횟수
+  attendanceStreak?: number;         // 출석 연속 일수
+  hasEarlyAttendance?: boolean;      // 오전 8시 이전 출석 여부
 }
 
 export function checkBadgeEligibility(
@@ -256,21 +258,21 @@ export function checkBadgeEligibility(
 
     // 감정/출석
     case 'happy_virus':
-      return data.happyEmotionCount >= 30;
+      return (data.happyEmotionCount ?? 0) >= 30;
     case 'positive_king':
-      return data.excitedEmotionCount >= 20;
+      return (data.excitedEmotionCount ?? 0) >= 20;
 
     // 목표
     case 'goal_achiever':
-      return data.completedGoalsCount >= 3;
+      return (data.completedGoalsCount ?? 0) >= 3;
 
     // 사진 공개
     case 'photographer':
-      return data.photoPublicCount >= 20;
+      return (data.photoPublicCount ?? 0) >= 20;
 
     // 칭찬
     case 'praiser':
-      return data.praisesGivenCount >= 10;
+      return (data.praisesGivenCount ?? 0) >= 10;
 
     default:
       return false;

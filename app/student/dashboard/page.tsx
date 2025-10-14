@@ -180,7 +180,10 @@ export default function StudentDashboardPage() {
         const goalsData = goalsSnap.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-        }));
+          startDate: doc.data().startDate,
+          endDate: doc.data().endDate,
+          createdAt: doc.data().createdAt?.toDate(),
+        })) as StudentGoal[];
         setActiveGoals(goalsData);
 
         // 리더보드 데이터 가져오기 (포인트 기준 상위 5명)
