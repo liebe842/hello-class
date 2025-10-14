@@ -9,6 +9,28 @@ import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, Timestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import type { Student, Attendance, EmotionType } from '@/lib/types';
+import StudentSidebar from '@/components/StudentSidebar';
+
+// 타입 정의
+interface ScheduleEvent {
+  id: string;
+  eventName: string;
+  startDate: string;
+  endDate?: string;
+}
+
+interface Assignment {
+  id: string;
+  title: string;
+  dueDate: Date;
+  description?: string;
+}
+
+interface MealData {
+  id: string;
+  date: string;
+  menu: string[];
+}
 
 export default function StudentDashboardPage() {
   const router = useRouter();
@@ -22,6 +44,12 @@ export default function StudentDashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const webcamRef = useRef<Webcam>(null);
 
+  // 대시보드에 표시할 추가 정보
+  const [todaySchedule, setTodaySchedule] = useState<ScheduleEvent[]>([]);
+  const [todayMeal, setTodayMeal] = useState<MealData | null>(null);
+  const [todayClasses, setTodayClasses] = useState<string[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+
   useEffect(() => {
     // localStorage에서 학생 세션 확인
     const sessionData = localStorage.getItem('studentSession');
@@ -33,21 +61,78 @@ export default function StudentDashboardPage() {
     const studentData = JSON.parse(sessionData) as Student;
     setStudent(studentData);
 
-    // 학생의 출석 데이터 불러오기
-    const fetchAttendanceData = async () => {
+    // 모든 데이터 불러오기
+    const fetchAllData = async () => {
       try {
+        const today = new Date().toISOString().split('T')[0];
+        const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()];
+
+        // 출석 데이터
         const attendanceRef = collection(db, 'attendance');
         const q = query(attendanceRef, where('studentId', '==', studentData.id));
         const querySnapshot = await getDocs(q);
-
         const data = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
           time: doc.data().time?.toDate(),
           createdAt: doc.data().createdAt?.toDate(),
         })) as Attendance[];
-
         setAttendanceData(data);
+
+        // 학사일정 (오늘 + 앞으로 7일)
+        const scheduleSnap = await getDocs(collection(db, 'schoolSchedules'));
+        const schedules = scheduleSnap.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          } as ScheduleEvent))
+          .filter((schedule) => {
+            const startDate = new Date(schedule.startDate);
+            const endDate = schedule.endDate ? new Date(schedule.endDate) : startDate;
+            const now = new Date();
+            const weekLater = new Date();
+            weekLater.setDate(weekLater.getDate() + 7);
+            return (startDate <= weekLater && endDate >= now);
+          })
+          .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+          .slice(0, 3);
+        setTodaySchedule(schedules);
+
+        // 시간표 (오늘)
+        const timetableSnap = await getDocs(collection(db, 'timetable'));
+        if (!timetableSnap.empty) {
+          const timetableData = timetableSnap.docs[0].data();
+          const schedule = timetableData.schedule || {};
+          const classes = [];
+          for (let period = 1; period <= 6; period++) {
+            const key = `${dayOfWeek}-${period}`;
+            if (schedule[key]) {
+              classes.push(schedule[key]);
+            }
+          }
+          setTodayClasses(classes);
+        }
+
+        // 과제 (미제출 + 최근 마감 순)
+        const assignmentsSnap = await getDocs(collection(db, 'assignments'));
+        const assignmentsData = assignmentsSnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          dueDate: doc.data().dueDate?.toDate(),
+        }));
+
+        // 제출 기록 확인
+        const submissionsRef = collection(db, 'assignmentSubmissions');
+        const submissionsQuery = query(submissionsRef, where('studentId', '==', studentData.id));
+        const submissionsSnap = await getDocs(submissionsQuery);
+        const submittedIds = submissionsSnap.docs.map(doc => doc.data().assignmentId);
+
+        const pendingAssignments = assignmentsData
+          .filter((a): a is Assignment => !submittedIds.includes(a.id) && a.dueDate >= new Date())
+          .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
+          .slice(0, 3);
+        setAssignments(pendingAssignments);
+
         setLoading(false);
       } catch (error) {
         console.error('데이터 불러오기 실패:', error);
@@ -55,7 +140,7 @@ export default function StudentDashboardPage() {
       }
     };
 
-    fetchAttendanceData();
+    fetchAllData();
   }, [router]);
 
   const handleLogout = () => {
@@ -181,8 +266,8 @@ export default function StudentDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-        <div className="text-white text-2xl">로딩 중...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-800 text-2xl">로딩 중...</div>
       </div>
     );
   }
@@ -210,54 +295,78 @@ export default function StudentDashboardPage() {
     .map(att => att.emotion);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 to-pink-500">
-      {/* 헤더 */}
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">나의 대시보드 📚</h1>
-          <div className="flex gap-4">
-            <Link
-              href="/"
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
-            >
-              홈으로
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-            >
-              로그아웃
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* 사이드바 */}
+      <StudentSidebar studentName={student.name} studentInitial={student.name[0]} />
 
       {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
-        {/* 학생 정보 카드 */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+      <main className="flex-1 lg:ml-64 p-8">
+        {/* 상단 인사말 & 포인트 */}
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              Hello, {student.name} 👋
+            </h1>
+            <p className="text-gray-600">
+              오늘도 좋은 하루 보내세요! 열심히 공부하고 즐거운 시간 되세요.
+            </p>
+          </div>
+
+          {/* 우측 상단: 포인트 & 로그아웃 */}
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl shadow-lg p-6 text-white">
+              <div className="flex items-center gap-3">
+                <div className="text-4xl">💎</div>
+                <div>
+                  <p className="text-sm opacity-90">Point</p>
+                  <p className="text-3xl font-bold">{student.points || 0} XP</p>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <Link
+                  href="/student/points"
+                  className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-lg transition"
+                >
+                  내역
+                </Link>
+                <Link
+                  href="/kiosk/shop"
+                  className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-lg transition"
+                >
+                  상점
+                </Link>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Link
+                href="/"
+                className="bg-white text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 transition text-sm shadow-md"
+              >
+                홈으로
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm shadow-md"
+              >
+                로그아웃
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 학생 정보 & 출석 카드 */}
+        <div className="bg-white rounded-2xl shadow-md p-8 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-4xl text-white font-bold">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-3xl text-white font-bold shadow-lg">
                 {student.name[0]}
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">{student.name}</h2>
-                <p className="text-gray-600 mb-2">
+                <h2 className="text-2xl font-bold text-gray-800 mb-1">{student.name}</h2>
+                <p className="text-gray-600">
                   {student.grade}학년 {student.class}반 {student.number}번
                 </p>
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 rounded-lg flex items-center gap-2">
-                    <span className="text-2xl">💰</span>
-                    <span className="text-white font-bold text-lg">{student.points || 0}P</span>
-                  </div>
-                  <Link href="/student/points" className="text-blue-600 hover:text-blue-700 font-semibold text-sm">
-                    내역 →
-                  </Link>
-                  <Link href="/kiosk/shop" className="text-purple-600 hover:text-purple-700 font-semibold text-sm">
-                    상점 →
-                  </Link>
-                </div>
               </div>
             </div>
 
@@ -265,7 +374,7 @@ export default function StudentDashboardPage() {
             <div>
               {todayAttendance ? (
                 <div className="text-center">
-                  <div className="bg-green-100 text-green-700 px-8 py-4 rounded-xl font-bold text-lg">
+                  <div className="bg-green-50 text-green-700 border-2 border-green-200 px-8 py-4 rounded-xl font-bold text-lg">
                     ✅ 출석 완료
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
@@ -275,7 +384,7 @@ export default function StudentDashboardPage() {
               ) : (
                 <button
                   onClick={() => setShowAttendanceModal(true)}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition transform hover:scale-105"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-md"
                 >
                   📸 출석하기
                 </button>
@@ -284,146 +393,108 @@ export default function StudentDashboardPage() {
           </div>
         </div>
 
+        {/* 오늘의 정보 섹션 */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">오늘의 정보</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 오늘 수업 */}
+            <Link href="/student/timetable">
+              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 hover:shadow-md hover:border-cyan-300 transition cursor-pointer">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-2xl">📚</div>
+                  <h3 className="font-bold text-gray-800">오늘 수업</h3>
+                </div>
+                {todayClasses.length > 0 ? (
+                  <div className="space-y-1">
+                    {todayClasses.slice(0, 3).map((cls, idx) => (
+                      <p key={idx} className="text-sm text-gray-700">
+                        {idx + 1}교시: {cls}
+                      </p>
+                    ))}
+                    {todayClasses.length > 3 && (
+                      <p className="text-xs text-gray-500">외 {todayClasses.length - 3}개</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">등록된 시간표가 없습니다</p>
+                )}
+              </div>
+            </Link>
+
+            {/* 다가오는 일정 */}
+            <Link href="/student/school-schedule">
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 hover:shadow-md hover:border-teal-300 transition cursor-pointer">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-2xl">📅</div>
+                  <h3 className="font-bold text-gray-800">다가오는 일정</h3>
+                </div>
+                {todaySchedule.length > 0 ? (
+                  <div className="space-y-1">
+                    {todaySchedule.map((schedule) => (
+                      <p key={schedule.id} className="text-sm text-gray-700 truncate">
+                        {schedule.eventName}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">예정된 일정이 없습니다</p>
+                )}
+              </div>
+            </Link>
+
+            {/* 미제출 과제 */}
+            <Link href="/student/assignments">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 hover:shadow-md hover:border-orange-300 transition cursor-pointer">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-2xl">📝</div>
+                  <h3 className="font-bold text-gray-800">미제출 과제</h3>
+                </div>
+                {assignments.length > 0 ? (
+                  <div className="space-y-1">
+                    {assignments.map((assignment) => (
+                      <div key={assignment.id} className="text-sm">
+                        <p className="text-gray-700 truncate font-medium">{assignment.title}</p>
+                        <p className="text-xs text-gray-500">
+                          마감: {assignment.dueDate.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">미제출 과제가 없습니다</p>
+                )}
+              </div>
+            </Link>
+
+            {/* 빠른 메뉴 */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="font-bold text-gray-800 mb-3">빠른 메뉴</h3>
+              <div className="grid grid-cols-3 gap-2">
+                <Link href="/student/meal">
+                  <div className="text-center p-2 hover:bg-gray-50 rounded transition">
+                    <div className="text-2xl mb-1">🍽️</div>
+                    <p className="text-xs text-gray-700">급식</p>
+                  </div>
+                </Link>
+                <Link href="/student/praise">
+                  <div className="text-center p-2 hover:bg-gray-50 rounded transition">
+                    <div className="text-2xl mb-1">✨</div>
+                    <p className="text-xs text-gray-700">칭찬</p>
+                  </div>
+                </Link>
+                <Link href="/student/goals">
+                  <div className="text-center p-2 hover:bg-gray-50 rounded transition">
+                    <div className="text-2xl mb-1">🎯</div>
+                    <p className="text-xs text-gray-700">목표</p>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 대시보드 정보 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* 퀴즈 주제 바로가기 */}
-          <Link href="/student/quiz-topics">
-            <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">🎯 퀴즈 주제</h3>
-              <p className="text-purple-100 text-sm mb-4">
-                문제를 만들고 친구들의 문제를 풀어보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                주제 보러가기 →
-              </div>
-            </div>
-          </Link>
-          {/* 리더보드 바로가기 */}
-          <Link href="/student/leaderboard">
-            <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">🏆 리더보드</h3>
-              <p className="text-yellow-100 text-sm mb-4">
-                우리 반 최고는 누구? 순위를 확인해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                순위 보러가기 →
-              </div>
-            </div>
-          </Link>
-          {/* 내 통계 바로가기 */}
-          <Link href="/student/statistics">
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">📊 내 통계</h3>
-              <p className="text-blue-100 text-sm mb-4">
-                내 학습 기록과 성적을 확인해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                통계 보러가기 →
-              </div>
-            </div>
-          </Link>
-          {/* 배지 컬렉션 바로가기 */}
-          <Link href="/student/badges">
-            <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">🏅 배지 컬렉션</h3>
-              <p className="text-yellow-100 text-sm mb-4">
-                획득한 배지를 확인하고 새로운 목표에 도전하세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                배지 보러가기 →
-              </div>
-            </div>
-          </Link>
-          {/* 과제 바로가기 */}
-          <Link href="/student/assignments">
-            <div className="bg-gradient-to-br from-green-500 to-teal-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">📝 과제</h3>
-              <p className="text-green-100 text-sm mb-4">
-                과제를 확인하고 제출해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                과제 보러가기 →
-              </div>
-            </div>
-          </Link>
-
-          {/* 학사일정 바로가기 */}
-          <Link href="/student/school-schedule">
-            <div className="bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">📅 학사일정</h3>
-              <p className="text-teal-100 text-sm mb-4">
-                학교 일정과 행사를 확인해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                일정 보러가기 →
-              </div>
-            </div>
-          </Link>
-
-          {/* 시간표 바로가기 */}
-          <Link href="/student/timetable">
-            <div className="bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">📚 시간표</h3>
-              <p className="text-cyan-100 text-sm mb-4">
-                오늘의 수업을 확인해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                시간표 보러가기 →
-              </div>
-            </div>
-          </Link>
-
-          {/* 급식 바로가기 */}
-          <Link href="/student/meal">
-            <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">🍽️ 급식</h3>
-              <p className="text-orange-100 text-sm mb-4">
-                이번 주 급식 메뉴를 확인해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                급식 보러가기 →
-              </div>
-            </div>
-          </Link>
-
-          {/* 칭찬하기 바로가기 */}
-          <Link href="/student/praise">
-            <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">✨ 칭찬하기</h3>
-              <p className="text-pink-100 text-sm mb-4">
-                친구와 선생님을 칭찬해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                칭찬 전달하기 →
-              </div>
-            </div>
-          </Link>
-
-          {/* 내 칭찬 보기 바로가기 */}
-          <Link href="/student/praise-list">
-            <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">💖 내 칭찬</h3>
-              <p className="text-purple-100 text-sm mb-4">
-                받은 칭찬과 보낸 칭찬을 확인해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                칭찬 보러가기 →
-              </div>
-            </div>
-          </Link>
-
-          {/* 나의 목표 바로가기 */}
-          <Link href="/student/goals">
-            <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer text-white">
-              <h3 className="text-xl font-bold mb-2">🎯 나의 목표</h3>
-              <p className="text-indigo-100 text-sm mb-4">
-                나만의 목표를 세우고 달성해보세요!
-              </p>
-              <div className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 rounded-lg transition text-center">
-                목표 관리하기 →
-              </div>
-            </div>
-          </Link>
-
           {/* 출석 현황 */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-xl font-bold mb-4 text-gray-800">📅 출석 현황</h3>

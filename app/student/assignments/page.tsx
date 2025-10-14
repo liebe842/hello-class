@@ -122,6 +122,33 @@ export default function StudentAssignmentsPage() {
     setShowSubmitModal(true);
   };
 
+  // 모달이 열릴 때 전역 붙여넣기 이벤트 리스너 추가
+  useEffect(() => {
+    if (!showSubmitModal) return;
+
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            processImageFile(file);
+            e.preventDefault();
+          }
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('paste', handleGlobalPaste);
+    return () => {
+      document.removeEventListener('paste', handleGlobalPaste);
+    };
+  }, [showSubmitModal]);
+
   // 이미지 파일 처리 (공통 함수)
   const processImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {

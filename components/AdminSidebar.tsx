@@ -29,11 +29,11 @@ export default function AdminSidebar() {
     { icon: <FaChalkboardTeacher />, label: '수업 관리', href: '/admin/classes' },
     { icon: <FaUserGraduate />, label: '학생 관리', href: '/admin/students' },
     { icon: <FaClipboardList />, label: '과제 관리', href: '/admin/assignments' },
-    { icon: <FaBullseye />, label: '퀴즈 & 목표', href: '/admin/quiz-goals' },
-    { icon: <FaCoins />, label: '포인트 & 상점', href: '/admin/points-shop' },
-    { icon: <FaHeart />, label: '칭찬 관리', href: '/admin/praises' },
+    { icon: <FaBullseye />, label: '퀴즈 주제', href: '/admin/quiz-topics' },
+    { icon: <FaCoins />, label: '포인트 관리', href: '/admin/points/overview' },
+    { icon: <FaHeart />, label: '칭찬 관리', href: '/admin/praise-list' },
     { icon: <FaGamepad />, label: '게임 관리', href: '/admin/minigames' },
-    { icon: <FaCog />, label: '설정', href: '/admin/settings' },
+    { icon: <FaCog />, label: '설정', href: '/admin/class-config' },
   ];
 
   const isActive = (href: string) => {
