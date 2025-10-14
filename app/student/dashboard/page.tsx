@@ -159,16 +159,9 @@ export default function StudentDashboardPage() {
         const submissionsSnap = await getDocs(submissionsQuery);
         const submittedIds = submissionsSnap.docs.map(doc => doc.data().assignmentId);
 
-        // 미제출 과제만 필터링 (마감일이 지나지 않은 것만)
-        const now = new Date();
-        now.setHours(0, 0, 0, 0); // 오늘 00:00:00
-
+        // 미제출 과제만 필터링 (제출한 것만 제외, 마감일 지난 것도 표시)
         const pendingAssignments = assignmentsData
-          .filter(a => {
-            const dueDate = new Date(a.dueDate);
-            dueDate.setHours(23, 59, 59, 999); // 마감일 23:59:59
-            return !submittedIds.includes(a.id) && dueDate >= now;
-          })
+          .filter(a => !submittedIds.includes(a.id))
           .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
           .slice(0, 5) as Assignment[]; // 5개까지 표시
         setAssignments(pendingAssignments);
@@ -545,14 +538,36 @@ export default function StudentDashboardPage() {
                 </div>
                 {assignments.length > 0 ? (
                   <div className="space-y-2 overflow-y-auto flex-1">
-                    {assignments.map((assignment) => (
-                      <div key={assignment.id} className="text-sm">
-                        <p className="text-gray-700 font-medium">{assignment.title}</p>
-                        <p className="text-xs text-gray-500">
-                          마감: {assignment.dueDate.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                        </p>
-                      </div>
-                    ))}
+                    {assignments.map((assignment) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const dueDate = new Date(assignment.dueDate);
+                      dueDate.setHours(0, 0, 0, 0);
+                      const isOverdue = dueDate < today;
+                      const isToday = dueDate.getTime() === today.getTime();
+
+                      return (
+                        <div
+                          key={assignment.id}
+                          className={`text-sm p-2 rounded ${
+                            isOverdue ? 'bg-red-100 border border-red-300' :
+                            isToday ? 'bg-yellow-100 border border-yellow-300' :
+                            'bg-white'
+                          }`}
+                        >
+                          <p className={`font-medium ${isOverdue ? 'text-red-700' : 'text-gray-700'}`}>
+                            {isOverdue && '⚠️ '}
+                            {isToday && '🔥 '}
+                            {assignment.title}
+                          </p>
+                          <p className={`text-xs ${isOverdue ? 'text-red-600 font-semibold' : isToday ? 'text-yellow-700 font-semibold' : 'text-gray-500'}`}>
+                            마감: {assignment.dueDate.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                            {isOverdue && ' (기한 초과)'}
+                            {isToday && ' (오늘 마감)'}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500">미제출 과제가 없습니다</p>
