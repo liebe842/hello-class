@@ -471,13 +471,13 @@ export default function StudentDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 오늘 수업 - 6교시 전체 표시 */}
             <Link href="/student/timetable">
-              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 hover:shadow-md hover:border-cyan-300 transition cursor-pointer">
+              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 hover:shadow-md hover:border-cyan-300 transition cursor-pointer h-64 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="text-2xl">📚</div>
                   <h3 className="font-bold text-gray-800">오늘 수업</h3>
                 </div>
                 {todayClasses.length > 0 ? (
-                  <div className="space-y-1">
+                  <div className="space-y-1 overflow-y-auto flex-1">
                     {todayClasses.map((cls, idx) => (
                       <p key={idx} className="text-sm text-gray-700">
                         {cls}
@@ -492,18 +492,18 @@ export default function StudentDashboardPage() {
 
             {/* 다가오는 일정 - 날짜 포함 */}
             <Link href="/student/school-schedule">
-              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 hover:shadow-md hover:border-teal-300 transition cursor-pointer">
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 hover:shadow-md hover:border-teal-300 transition cursor-pointer h-64 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="text-2xl">📅</div>
                   <h3 className="font-bold text-gray-800">다가오는 일정</h3>
                 </div>
                 {todaySchedule.length > 0 ? (
-                  <div className="space-y-1">
+                  <div className="space-y-1 overflow-y-auto flex-1">
                     {todaySchedule.map((schedule) => {
                       const date = new Date(schedule.startDate);
                       const dateStr = `${date.getMonth() + 1}.${date.getDate()}`;
                       return (
-                        <p key={schedule.id} className="text-sm text-gray-700 truncate">
+                        <p key={schedule.id} className="text-sm text-gray-700">
                           {schedule.eventName} ({dateStr})
                         </p>
                       );
@@ -517,21 +517,18 @@ export default function StudentDashboardPage() {
 
             {/* 오늘 급식 메뉴 */}
             <Link href="/student/meal">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md hover:border-yellow-300 transition cursor-pointer">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:shadow-md hover:border-yellow-300 transition cursor-pointer h-64 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="text-2xl">🍽️</div>
                   <h3 className="font-bold text-gray-800">오늘 급식</h3>
                 </div>
                 {todayMeal && todayMeal.menu.length > 0 ? (
-                  <div className="space-y-1">
-                    {todayMeal.menu.slice(0, 4).map((item, idx) => (
-                      <p key={idx} className="text-sm text-gray-700 truncate">
+                  <div className="space-y-1 overflow-y-auto flex-1">
+                    {todayMeal.menu.map((item, idx) => (
+                      <p key={idx} className="text-sm text-gray-700">
                         • {item}
                       </p>
                     ))}
-                    {todayMeal.menu.length > 4 && (
-                      <p className="text-xs text-gray-500">외 {todayMeal.menu.length - 4}개</p>
-                    )}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500">오늘 급식 정보가 없습니다</p>
@@ -541,16 +538,16 @@ export default function StudentDashboardPage() {
 
             {/* 미제출 과제 */}
             <Link href="/student/assignments">
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 hover:shadow-md hover:border-orange-300 transition cursor-pointer">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 hover:shadow-md hover:border-orange-300 transition cursor-pointer h-64 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="text-2xl">📝</div>
                   <h3 className="font-bold text-gray-800">미제출 과제</h3>
                 </div>
                 {assignments.length > 0 ? (
-                  <div className="space-y-1">
+                  <div className="space-y-2 overflow-y-auto flex-1">
                     {assignments.map((assignment) => (
                       <div key={assignment.id} className="text-sm">
-                        <p className="text-gray-700 truncate font-medium">{assignment.title}</p>
+                        <p className="text-gray-700 font-medium">{assignment.title}</p>
                         <p className="text-xs text-gray-500">
                           마감: {assignment.dueDate.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                         </p>
