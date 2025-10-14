@@ -87,8 +87,8 @@ export default function AdminDashboard() {
           type = 'praise';
         } else if (data.source === 'goal') {
           type = 'goal';
-        } else if (data.source === 'coupon') {
-          type = 'coupon';
+        } else if (data.source === 'shop') {
+          type = 'coupon'; // shop은 coupon으로 표시
         } else {
           type = 'point';
         }
