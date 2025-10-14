@@ -201,9 +201,40 @@ export default function StudentDashboardPage() {
       const dateString = now.toISOString().split('T')[0];
       const timestamp = now.getTime();
 
+      // 이미지 압축 (파일 크기 줄이기)
+      const compressedImage = await new Promise<string>((resolve) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxWidth = 800;
+          const maxHeight = 600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = capturedImage;
+      });
+
       // Firebase Storage에 사진 업로드
       const storageRef = ref(storage, `attendance/${dateString}/${student.id}_${timestamp}.jpg`);
-      await uploadString(storageRef, capturedImage, 'data_url');
+      await uploadString(storageRef, compressedImage, 'data_url');
       const photoUrl = await getDownloadURL(storageRef);
 
       // Firestore에 출석 기록 저장
@@ -257,9 +288,10 @@ export default function StudentDashboardPage() {
       })) as Attendance[];
       setAttendanceData(data);
       setSubmitting(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('출석 제출 실패:', error);
-      alert('출석 제출에 실패했습니다.');
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      alert(`출석 제출에 실패했습니다.\n오류: ${errorMessage}\n\n잠시 후 다시 시도해주세요.`);
       setSubmitting(false);
     }
   };
