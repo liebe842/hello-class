@@ -23,8 +23,7 @@ export default function StudentSidebar({ studentName = '학생', studentInitial 
     { icon: '🏠', label: '대시보드', href: '/student/dashboard' },
     { icon: '🎯', label: '퀴즈', href: '/student/quiz-topics' },
     { icon: '📝', label: '과제', href: '/student/assignments' },
-    { icon: '✨', label: '칭찬하기', href: '/student/praise' },
-    { icon: '💖', label: '받은 칭찬', href: '/student/praise-list' },
+    { icon: '💖', label: '칭찬', href: '/student/praise-list' },
     { icon: '🎯', label: '나의 목표', href: '/student/goals' },
     { icon: '📊', label: '통계', href: '/student/statistics' },
     { icon: '🏆', label: '리더보드', href: '/student/leaderboard' },
@@ -86,7 +85,7 @@ export default function StudentSidebar({ studentName = '학생', studentInitial 
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
                     isActive(item.href)
                       ? 'bg-white text-purple-700 shadow-lg font-semibold'
-                      : 'text-purple-100 hover:bg-white hover:bg-opacity-10 hover:text-white'
+                      : 'text-purple-100 hover:bg-white hover:text-purple-700'
                   }`}
                 >
                   <span className="text-2xl">{item.icon}</span>
