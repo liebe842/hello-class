@@ -2,10 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
+
+interface MealData {
+  breakfast: string;
+  lunch: string;
+  dinner: string;
+}
+
+interface TimetableSlot {
+  period: number;
+  subject: string;
+  teacher: string;
+}
 
 export default function KioskPage() {
   const [currentDate, setCurrentDate] = useState('');
   const [currentDay, setCurrentDay] = useState('');
+  const [mealData, setMealData] = useState<MealData | null>(null);
+  const [currentClass, setCurrentClass] = useState('');
+  const [attendanceRate, setAttendanceRate] = useState({ present: 0, total: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const now = new Date();
@@ -17,7 +35,88 @@ export default function KioskPage() {
 
     setCurrentDate(`${year}년 ${month}월 ${date}일`);
     setCurrentDay(day);
+
+    fetchKioskData();
   }, []);
+
+  const fetchKioskData = async () => {
+    try {
+      const today = new Date();
+      const dateString = today.toISOString().split('T')[0];
+
+      // 오늘의 급식 가져오기
+      const mealQuery = query(collection(db, 'meals'), where('date', '==', dateString));
+      const mealSnapshot = await getDocs(mealQuery);
+      if (!mealSnapshot.empty) {
+        const meal = mealSnapshot.docs[0].data() as MealData;
+        setMealData(meal);
+      }
+
+      // 현재 교시 계산 및 시간표 가져오기
+      const currentPeriod = getCurrentPeriod();
+      if (currentPeriod > 0) {
+        const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][today.getDay()];
+        const timetableQuery = query(
+          collection(db, 'timetable'),
+          where('dayOfWeek', '==', dayOfWeek)
+        );
+        const timetableSnapshot = await getDocs(timetableQuery);
+        if (!timetableSnapshot.empty) {
+          const timetable = timetableSnapshot.docs[0].data();
+          const slots = timetable.slots as TimetableSlot[];
+          const currentSlot = slots.find(slot => slot.period === currentPeriod);
+          if (currentSlot) {
+            setCurrentClass(`${currentPeriod}교시 - ${currentSlot.subject}`);
+          }
+        }
+      } else {
+        setCurrentClass('수업 전');
+      }
+
+      // 오늘 출석률 계산
+      const attendanceQuery = query(
+        collection(db, 'attendance'),
+        where('date', '==', dateString)
+      );
+      const attendanceSnapshot = await getDocs(attendanceQuery);
+      const studentsSnapshot = await getDocs(collection(db, 'students'));
+
+      setAttendanceRate({
+        present: attendanceSnapshot.size,
+        total: studentsSnapshot.size
+      });
+
+      setLoading(false);
+    } catch (error) {
+      console.error('키오스크 데이터 로드 실패:', error);
+      setLoading(false);
+    }
+  };
+
+  const getCurrentPeriod = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const time = hour * 60 + minute;
+
+    // 교시별 시간 (분 단위)
+    const periods = [
+      { period: 1, start: 9 * 60, end: 9 * 60 + 50 },      // 09:00 - 09:50
+      { period: 2, start: 10 * 60, end: 10 * 60 + 50 },    // 10:00 - 10:50
+      { period: 3, start: 11 * 60, end: 11 * 60 + 50 },    // 11:00 - 11:50
+      { period: 4, start: 12 * 60, end: 12 * 60 + 50 },    // 12:00 - 12:50
+      { period: 5, start: 14 * 60, end: 14 * 60 + 50 },    // 14:00 - 14:50
+      { period: 6, start: 15 * 60, end: 15 * 60 + 50 },    // 15:00 - 15:50
+      { period: 7, start: 16 * 60, end: 16 * 60 + 50 },    // 16:00 - 16:50
+    ];
+
+    for (const p of periods) {
+      if (time >= p.start && time < p.end) {
+        return p.period;
+      }
+    }
+    return 0; // 수업 시간 아님
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 to-blue-500">
@@ -95,16 +194,22 @@ export default function KioskPage() {
       <footer className="fixed bottom-0 left-0 right-0 bg-white bg-opacity-90 px-8 py-4">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-sm text-gray-600">오늘의 급식</p>
-            <p className="font-semibold text-gray-800">김치찌개, 불고기, 잡곡밥</p>
+            <p className="text-sm text-gray-600">오늘의 급식 (점심)</p>
+            <p className="font-semibold text-gray-800">
+              {loading ? '로딩 중...' : mealData?.lunch || '급식 정보 없음'}
+            </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">다음 수업</p>
-            <p className="font-semibold text-gray-800">3교시 - 수학</p>
+            <p className="text-sm text-gray-600">현재 수업</p>
+            <p className="font-semibold text-gray-800">
+              {loading ? '로딩 중...' : currentClass || '수업 정보 없음'}
+            </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">출석률</p>
-            <p className="font-semibold text-green-600">24/25 (96%)</p>
+            <p className="text-sm text-gray-600">오늘 출석률</p>
+            <p className="font-semibold text-green-600">
+              {loading ? '로딩 중...' : `${attendanceRate.present}/${attendanceRate.total} (${attendanceRate.total > 0 ? Math.round((attendanceRate.present / attendanceRate.total) * 100) : 0}%)`}
+            </p>
           </div>
         </div>
       </footer>
