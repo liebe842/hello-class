@@ -167,9 +167,10 @@ export default function KioskShopPage() {
             onClick={() => setFilter('all')}
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'all'
-                ? 'bg-white text-purple-600 shadow-lg'
-                : 'bg-white bg-opacity-30 text-white hover:bg-opacity-40'
+                ? 'bg-white shadow-lg'
+                : 'bg-white bg-opacity-30 hover:bg-opacity-40'
             }`}
+            style={{ color: filter === 'all' ? '#9333ea' : '#ffffff' }}
           >
             전체
           </button>
@@ -177,9 +178,10 @@ export default function KioskShopPage() {
             onClick={() => setFilter('time')}
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'time'
-                ? 'bg-white text-blue-600 shadow-lg'
-                : 'bg-white bg-opacity-30 text-white hover:bg-opacity-40'
+                ? 'bg-white shadow-lg'
+                : 'bg-white bg-opacity-30 hover:bg-opacity-40'
             }`}
+            style={{ color: filter === 'time' ? '#2563eb' : '#ffffff' }}
           >
             ⏰ 자유시간
           </button>
@@ -187,9 +189,10 @@ export default function KioskShopPage() {
             onClick={() => setFilter('privilege')}
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'privilege'
-                ? 'bg-white text-purple-600 shadow-lg'
-                : 'bg-white bg-opacity-30 text-white hover:bg-opacity-40'
+                ? 'bg-white shadow-lg'
+                : 'bg-white bg-opacity-30 hover:bg-opacity-40'
             }`}
+            style={{ color: filter === 'privilege' ? '#9333ea' : '#ffffff' }}
           >
             👑 특권
           </button>
