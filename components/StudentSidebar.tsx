@@ -76,7 +76,7 @@ export default function StudentSidebar({ studentName = '학생', studentInitial 
         <div className="p-6 border-b border-purple-500 border-opacity-30">
           <Link href="/student/dashboard" className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">H</span>
+              <span className="text-2xl">👋</span>
             </div>
             <div>
               <h1 className="text-white font-bold text-lg">Hello, Class!</h1>
