@@ -256,12 +256,25 @@ export default function StudentDashboardPage() {
     }
   }, [webcamRef]);
 
-  // 오늘 출석 여부 확인
-  const todayAttendance = attendanceData.find(a => {
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    return a.date === todayStr;
-  });
+  // 오늘 출석 여부 확인 (로컬 시간대 기준)
+  const getTodayString = () => {
+    const now = new Date();
+    // 로컬 시간대로 오늘 날짜 계산
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayStr = getTodayString();
+  const todayAttendance = attendanceData.find(a => a.date === todayStr);
+
+  // 디버깅: 콘솔에 출력
+  if (typeof window !== 'undefined') {
+    console.log('오늘 날짜:', todayStr);
+    console.log('출석 데이터:', attendanceData.map(a => ({ date: a.date, studentId: a.studentId })));
+    console.log('오늘 출석 여부:', todayAttendance ? '출석 완료' : '미출석');
+  }
 
   // 출석 제출
   const handleSubmitAttendance = async () => {
