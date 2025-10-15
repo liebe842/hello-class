@@ -1,3 +1,5 @@
+'use client';
+
 import LayoutWrapper from './LayoutWrapper';
 
 export default function StudentLayout({
