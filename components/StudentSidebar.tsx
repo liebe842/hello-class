@@ -75,7 +75,7 @@ export default function StudentSidebar({ studentName = '학생', studentInitial 
         {/* Logo */}
         <div className="p-6 border-b border-purple-500 border-opacity-30">
           <Link href="/student/dashboard" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">H</span>
             </div>
             <div>
