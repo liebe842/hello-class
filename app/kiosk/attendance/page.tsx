@@ -28,8 +28,9 @@ export default function KioskAttendancePage() {
         createdAt: doc.data().createdAt?.toDate(),
       })) as Student[];
 
-      // 오늘 출석 데이터
-      const today = new Date().toISOString().split('T')[0];
+      // 오늘 출석 데이터 - 서울 시간 기준 (YYYY-MM-DD 형식)
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const attendanceSnapshot = await getDocs(collection(db, 'attendance'));
       const attendanceData = attendanceSnapshot.docs
         .map(doc => {

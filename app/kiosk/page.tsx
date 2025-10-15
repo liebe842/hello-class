@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 
 interface MealData {
   breakfast: string;
@@ -36,7 +36,8 @@ export default function KioskPage() {
   const fetchKioskData = async () => {
     try {
       const today = new Date();
-      const dateString = today.toISOString().split('T')[0].replace(/-/g, '');
+      // 서울 시간 기준으로 날짜 생성 (YYYYMMDD 형식)
+      const dateString = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
 
       // 오늘의 급식 가져오기 (NEIS API 사용)
       try {
@@ -89,16 +90,16 @@ export default function KioskPage() {
         setTodayClasses('주말');
       }
 
-      // 오늘 출석률 계산
-      const attendanceQuery = query(
-        collection(db, 'attendance'),
-        where('date', '==', dateString)
-      );
-      const attendanceSnapshot = await getDocs(attendanceQuery);
+      // 오늘 출석률 계산 - 모든 출석 데이터를 가져온 후 필터링
+      const attendanceSnapshot = await getDocs(collection(db, 'attendance'));
+      const todayAttendance = attendanceSnapshot.docs.filter(doc => {
+        const data = doc.data();
+        return data.date === dateString;
+      });
       const studentsSnapshot = await getDocs(collection(db, 'students'));
 
       setAttendanceRate({
-        present: attendanceSnapshot.size,
+        present: todayAttendance.length,
         total: studentsSnapshot.size
       });
 

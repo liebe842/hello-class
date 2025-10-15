@@ -30,8 +30,9 @@ export default function AdminDashboard() {
 
       const totalStudents = students.length;
 
-      // 2. 오늘 출석 현황
-      const today = new Date().toISOString().split('T')[0];
+      // 2. 오늘 출석 현황 - 서울 시간 기준 (YYYY-MM-DD 형식)
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const attendanceSnap = await getDocs(collection(db, 'attendance'));
       const todayAttendance = attendanceSnap.docs.filter(
         doc => doc.data().date === today

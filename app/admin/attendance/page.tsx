@@ -25,8 +25,9 @@ export default function AttendanceDashboardPage() {
         })) as Student[];
         setStudents(studentsData);
 
-        // 오늘 출석 데이터
-        const today = new Date().toISOString().split('T')[0];
+        // 오늘 출석 데이터 - 서울 시간 기준 (YYYY-MM-DD 형식)
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const attendanceQuery = query(
           collection(db, 'attendance'),
           where('date', '==', today)
