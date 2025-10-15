@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import type { Student } from '@/lib/types';
 
-export default function LeaderboardPage() {
+function LeaderboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isKioskMode = searchParams?.get('kiosk') === 'true';

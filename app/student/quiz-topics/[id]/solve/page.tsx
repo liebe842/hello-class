@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,7 +18,7 @@ import {
 } from 'firebase/firestore';
 import type { QuizTopic, Quiz } from '@/lib/types';
 
-export default function QuizSolvePage() {
+function QuizSolveContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -637,5 +637,18 @@ export default function QuizSolvePage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function QuizSolvePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-600">로딩 중...</div>
+      </div>
+    }>
+      <QuizSolveContent />
+    </Suspense>
   );
 }
