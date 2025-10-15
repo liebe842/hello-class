@@ -7,7 +7,7 @@ import Image from 'next/image';
 import Webcam from 'react-webcam';
 import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, Timestamp, updateDoc, doc, increment } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Student, Attendance, EmotionType, StudentGoal } from '@/lib/types';
 
 // 타입 정의
@@ -313,9 +313,17 @@ export default function StudentDashboardPage() {
         img.src = capturedImage;
       });
 
-      // Firebase Storage에 사진 업로드
+      // Firebase Storage에 사진 업로드 (Blob 방식으로 CORS 우회)
       const storageRef = ref(storage, `attendance/${dateString}/${student.id}_${timestamp}.jpg`);
-      await uploadString(storageRef, compressedImage, 'data_url');
+
+      // data URL을 Blob으로 변환
+      const response = await fetch(compressedImage);
+      const blob = await response.blob();
+
+      // uploadBytes 사용
+      await uploadBytes(storageRef, blob, {
+        contentType: 'image/jpeg'
+      });
       const photoUrl = await getDownloadURL(storageRef);
 
       // Firestore에 출석 기록 저장
