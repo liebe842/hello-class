@@ -140,7 +140,7 @@ export default function KioskShopPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500">
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-gray-900">
       {/* 헤더 */}
       <header className="bg-white bg-opacity-20 backdrop-blur-md shadow-lg">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -198,7 +198,7 @@ export default function KioskShopPage() {
         {/* 아이템 목록 */}
         {filteredItems.length === 0 ? (
           <div className="bg-white rounded-xl shadow-2xl p-12 text-center">
-            <p className="text-gray-600 text-lg font-semibold">판매 중인 아이템이 없습니다.</p>
+            <p className="text-lg font-semibold" style={{ color: '#4b5563' }}>판매 중인 아이템이 없습니다.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -209,6 +209,7 @@ export default function KioskShopPage() {
                 <div
                   key={item.id}
                   className="bg-white rounded-xl shadow-xl p-6 hover:shadow-2xl transition border-2 border-gray-100"
+                  style={{ color: '#111827' }}
                 >
                   {/* 카테고리 배지 */}
                   <div className="mb-3">
@@ -218,9 +219,9 @@ export default function KioskShopPage() {
                   </div>
 
                   {/* 아이템 정보 */}
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-700 mb-4 min-h-[40px]">{item.description}</p>
-                  <div className="text-3xl font-bold text-blue-600 mb-4">{item.price}P</div>
+                  <h3 className="text-xl font-bold mb-2" style={{ color: '#111827' }}>{item.title}</h3>
+                  <p className="text-sm mb-4 min-h-[40px]" style={{ color: '#374151' }}>{item.description}</p>
+                  <div className="text-3xl font-bold mb-4" style={{ color: '#2563eb' }}>{item.price}P</div>
 
                   {/* 구매 버튼 */}
                   <button
@@ -228,9 +229,10 @@ export default function KioskShopPage() {
                     disabled={!canBuy}
                     className={`w-full py-3 rounded-lg font-bold transition ${
                       canBuy
-                        ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                        ? 'bg-blue-500 hover:bg-blue-600 shadow-md'
+                        : 'bg-gray-300 cursor-not-allowed'
                     }`}
+                    style={{ color: canBuy ? '#ffffff' : '#4b5563' }}
                   >
                     {canBuy ? '구매하기' : '포인트 부족'}
                   </button>
