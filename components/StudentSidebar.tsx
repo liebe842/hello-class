@@ -38,6 +38,7 @@ export default function StudentSidebar({ studentName = '학생', studentInitial 
     { icon: '💖', label: '칭찬', href: '/student/praise-list' },
     { icon: '🎯', label: '나의 목표', href: '/student/goals' },
     { icon: '🏅', label: '배지', href: '/student/badges' },
+    { icon: '🎫', label: '내 쿠폰함', href: '/student/coupons' },
     { icon: '📊', label: '통계', href: '/student/statistics' },
   ];
 
