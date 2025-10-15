@@ -42,7 +42,7 @@ export default function StudentStats({ stats }: StudentStatsProps) {
         })}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-200">
+      <div className="mt-2 pt-4 border-t border-gray-200">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">총 포인트:</span>
           <span className="font-bold text-gray-800">
