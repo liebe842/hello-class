@@ -94,10 +94,15 @@ export default function KioskAssignmentsPage() {
     return { student, completedAssignments, completionRate };
   });
 
-  // 필터링된 학생 목록
-  const filteredStudents = viewMode === 'incomplete'
+  // 필터링 및 정렬된 학생 목록 (학년 → 반 → 번호 순)
+  const filteredStudents = (viewMode === 'incomplete'
     ? studentProgressList.filter(sp => sp.completionRate < 100)
-    : studentProgressList;
+    : studentProgressList
+  ).sort((a, b) => {
+    if (a.student.grade !== b.student.grade) return a.student.grade - b.student.grade;
+    if (a.student.class !== b.student.class) return a.student.class - b.student.class;
+    return a.student.number - b.student.number;
+  });
 
   if (loading) {
     return (
