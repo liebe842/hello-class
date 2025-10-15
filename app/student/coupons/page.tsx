@@ -128,28 +128,21 @@ export default function StudentCouponsPage() {
   return (
     <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-purple-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">🎫 내 쿠폰함</h1>
-          <Link
-            href="/student/dashboard"
-            className="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            대시보드
-          </Link>
-        </div>
-      </header>
-
-      {/* 메인 */}
-      <main className="container mx-auto px-6 py-8">
-        {/* 안내 */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">🎫 내 쿠폰함</h1>
+        <p className="text-gray-600 text-sm mt-1">
+          구매한 쿠폰을 확인하고 사용할 수 있습니다. 쿠폰 사용 시 선생님의 승인이 필요합니다.
+        </p>
         {unusedCount > 0 && (
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
-            <p className="text-green-800">
-              <strong>🎉 사용 가능한 쿠폰이 {unusedCount}개 있습니다!</strong>
-            </p>
+          <div className="mt-3 inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-lg text-sm font-semibold">
+            <span>🎉 사용 가능한 쿠폰</span>
+            <span className="text-lg font-bold">{unusedCount}개</span>
           </div>
         )}
+      </div>
+
+      {/* 메인 */}
+      <main>
 
         {/* 필터 */}
         <div className="mb-6 flex flex-wrap gap-2">
