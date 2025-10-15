@@ -49,7 +49,7 @@ export default function ActivityFeed({ activities }: ActivityFeedProps) {
         </button>
       </div>
 
-      <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+      <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
         {activities.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500">최근 활동이 없습니다.</p>
