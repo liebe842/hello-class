@@ -193,6 +193,13 @@ export default function StudentDashboardPage() {
           ...doc.data(),
         })) as Student[];
 
+        // 최신 포인트 반영을 위해 Firestore에서 가져온 학생 정보로 상태/세션 갱신
+        const currentStudentFromDb = allStudents.find(s => s.id === studentData.id);
+        if (currentStudentFromDb) {
+          setStudent(currentStudentFromDb);
+          localStorage.setItem('studentSession', JSON.stringify(currentStudentFromDb));
+        }
+
         // 포인트 기준으로 정렬
         const sortedStudents = allStudents.sort((a, b) => (b.points || 0) - (a.points || 0));
         setLeaderboard(sortedStudents.slice(0, 5));
