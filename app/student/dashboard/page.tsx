@@ -63,7 +63,7 @@ export default function StudentDashboardPage() {
     const studentData = JSON.parse(sessionData) as Student;
     setStudent(studentData);
 
-    // 모든 데이터 불러오기
+    // 모든 데이터 불러오기 (병렬 처리로 최적화)
     const fetchAllData = async () => {
       try {
         // 로컬 시간 기준 오늘 날짜
@@ -71,11 +71,14 @@ export default function StudentDashboardPage() {
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][now.getDay()];
 
-        // 출석 데이터
-        const attendanceRef = collection(db, 'attendance');
-        const q = query(attendanceRef, where('studentId', '==', studentData.id));
-        const querySnapshot = await getDocs(q);
-        const data = querySnapshot.docs.map(doc => ({
+        // 필수 데이터만 병렬로 가져오기 (출석 + 학생 정보)
+        const [attendanceSnapshot, studentsSnapshot] = await Promise.all([
+          getDocs(query(collection(db, 'attendance'), where('studentId', '==', studentData.id))),
+          getDocs(collection(db, 'students'))
+        ]);
+
+        // 출석 데이터 처리
+        const data = attendanceSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
           time: doc.data().time?.toDate(),
@@ -83,8 +86,35 @@ export default function StudentDashboardPage() {
         })) as Attendance[];
         setAttendanceData(data);
 
-        // 학사일정 (오늘 + 앞으로 30일) - 더 많이 표시
-        const scheduleSnap = await getDocs(collection(db, 'schoolSchedules'));
+        // 학생 데이터 처리 (리더보드용)
+        const allStudents = studentsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Student[];
+
+        // 최신 포인트 반영
+        const currentStudentFromDb = allStudents.find(s => s.id === studentData.id);
+        if (currentStudentFromDb) {
+          setStudent(currentStudentFromDb);
+          localStorage.setItem('studentSession', JSON.stringify(currentStudentFromDb));
+        }
+
+        // 리더보드 (포인트 기준 상위 5명만)
+        const sortedStudents = allStudents.sort((a, b) => (b.points || 0) - (a.points || 0));
+        setLeaderboard(sortedStudents.slice(0, 5));
+        const myRankIndex = sortedStudents.findIndex(s => s.id === studentData.id);
+        setMyRank(myRankIndex !== -1 ? myRankIndex + 1 : 0);
+
+        // 나머지 데이터를 병렬로 가져오기 (시간표, 학사일정, 과제, 과제제출, 목표)
+        const [scheduleSnap, timetableSnap, assignmentsSnap, submissionsSnap, goalsSnap] = await Promise.all([
+          getDocs(collection(db, 'schoolSchedules')),
+          getDocs(collection(db, 'timetable')),
+          getDocs(collection(db, 'assignments')),
+          getDocs(query(collection(db, 'assignmentSubmissions'), where('studentId', '==', studentData.id))),
+          getDocs(query(collection(db, 'studentGoals'), where('studentId', '==', studentData.id), where('status', '==', 'active')))
+        ]);
+
+        // 학사일정 처리
         const schedules = scheduleSnap.docs
           .map(doc => ({
             id: doc.id,
@@ -102,8 +132,7 @@ export default function StudentDashboardPage() {
           .slice(0, 5); // 5개까지 표시
         setTodaySchedule(schedules);
 
-        // 시간표 (오늘) - 6교시까지 모두 표시
-        const timetableSnap = await getDocs(collection(db, 'timetable'));
+        // 시간표 처리
         if (!timetableSnap.empty) {
           const timetableData = timetableSnap.docs[0].data();
           const schedule = timetableData.schedule || {};
@@ -148,8 +177,7 @@ export default function StudentDashboardPage() {
           }
         }
 
-        // 과제 (미제출 + 최근 마감 순)
-        const assignmentsSnap = await getDocs(collection(db, 'assignments'));
+        // 과제 처리
         const assignmentsData = assignmentsSnap.docs.map(doc => {
           const data = doc.data();
           return {
@@ -160,10 +188,6 @@ export default function StudentDashboardPage() {
           };
         });
 
-        // 제출 기록 확인
-        const submissionsRef = collection(db, 'assignmentSubmissions');
-        const submissionsQuery = query(submissionsRef, where('studentId', '==', studentData.id));
-        const submissionsSnap = await getDocs(submissionsQuery);
         const submittedIds = submissionsSnap.docs.map(doc => doc.data().assignmentId);
 
         // 미제출 과제만 필터링 (제출한 것만 제외, 마감일 지난 것도 표시)
@@ -173,10 +197,7 @@ export default function StudentDashboardPage() {
           .slice(0, 5) as Assignment[]; // 5개까지 표시
         setAssignments(pendingAssignments);
 
-        // 학생 목표 가져오기 (진행 중인 목표만)
-        const goalsRef = collection(db, 'studentGoals');
-        const goalsQuery = query(goalsRef, where('studentId', '==', studentData.id), where('status', '==', 'active'));
-        const goalsSnap = await getDocs(goalsQuery);
+        // 학생 목표 처리
         const goalsData = goalsSnap.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
@@ -185,28 +206,6 @@ export default function StudentDashboardPage() {
           createdAt: doc.data().createdAt?.toDate(),
         })) as StudentGoal[];
         setActiveGoals(goalsData);
-
-        // 리더보드 데이터 가져오기 (포인트 기준 상위 5명)
-        const studentsSnap = await getDocs(collection(db, 'students'));
-        const allStudents = studentsSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Student[];
-
-        // 최신 포인트 반영을 위해 Firestore에서 가져온 학생 정보로 상태/세션 갱신
-        const currentStudentFromDb = allStudents.find(s => s.id === studentData.id);
-        if (currentStudentFromDb) {
-          setStudent(currentStudentFromDb);
-          localStorage.setItem('studentSession', JSON.stringify(currentStudentFromDb));
-        }
-
-        // 포인트 기준으로 정렬
-        const sortedStudents = allStudents.sort((a, b) => (b.points || 0) - (a.points || 0));
-        setLeaderboard(sortedStudents.slice(0, 5));
-
-        // 내 순위 찾기
-        const myRankIndex = sortedStudents.findIndex(s => s.id === studentData.id);
-        setMyRank(myRankIndex !== -1 ? myRankIndex + 1 : 0);
 
         setLoading(false);
       } catch (error) {
