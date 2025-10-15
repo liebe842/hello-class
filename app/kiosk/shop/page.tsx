@@ -142,19 +142,19 @@ export default function KioskShopPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-gray-900">
       {/* 헤더 */}
-      <header className="bg-white bg-opacity-20 backdrop-blur-md shadow-lg">
+      <header className="bg-white bg-opacity-90 backdrop-blur-md shadow-lg">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold" style={{ color: '#ffffff', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+          <h1 className="text-2xl font-bold" style={{ color: '#1f2937' }}>
             🏪 상점
           </h1>
           <div className="flex items-center space-x-4">
-            <div className="bg-white bg-opacity-30 px-4 py-2 rounded-lg font-bold" style={{ color: '#ffffff', textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-2 rounded-lg font-bold" style={{ color: '#ffffff' }}>
               💰 {student.points}P
             </div>
             <Link
               href="/kiosk/home"
-              className="bg-white px-4 py-2 rounded-lg hover:bg-gray-100 transition font-semibold"
-              style={{ color: '#9333ea' }}
+              className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition font-semibold"
+              style={{ color: '#ffffff' }}
             >
               홈으로
             </Link>
@@ -170,12 +170,19 @@ export default function KioskShopPage() {
             onClick={() => setFilter('all')}
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'all'
-                ? 'bg-white shadow-lg'
-                : 'bg-gray-800 bg-opacity-60 hover:bg-opacity-70'
+                ? 'bg-purple-600 shadow-lg'
+                : 'bg-white hover:bg-purple-600'
             }`}
-            style={{
-              color: filter === 'all' ? '#9333ea' : '#ffffff',
-              textShadow: filter === 'all' ? 'none' : '1px 1px 2px rgba(0,0,0,0.5)'
+            style={{ color: filter === 'all' ? '#ffffff' : '#9333ea' }}
+            onMouseEnter={(e) => {
+              if (filter !== 'all') {
+                e.currentTarget.style.color = '#ffffff';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (filter !== 'all') {
+                e.currentTarget.style.color = '#9333ea';
+              }
             }}
           >
             전체
@@ -184,12 +191,19 @@ export default function KioskShopPage() {
             onClick={() => setFilter('time')}
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'time'
-                ? 'bg-white shadow-lg'
-                : 'bg-gray-800 bg-opacity-60 hover:bg-opacity-70'
+                ? 'bg-blue-600 shadow-lg'
+                : 'bg-white hover:bg-blue-600'
             }`}
-            style={{
-              color: filter === 'time' ? '#2563eb' : '#ffffff',
-              textShadow: filter === 'time' ? 'none' : '1px 1px 2px rgba(0,0,0,0.5)'
+            style={{ color: filter === 'time' ? '#ffffff' : '#2563eb' }}
+            onMouseEnter={(e) => {
+              if (filter !== 'time') {
+                e.currentTarget.style.color = '#ffffff';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (filter !== 'time') {
+                e.currentTarget.style.color = '#2563eb';
+              }
             }}
           >
             ⏰ 자유시간
@@ -198,12 +212,19 @@ export default function KioskShopPage() {
             onClick={() => setFilter('privilege')}
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'privilege'
-                ? 'bg-white shadow-lg'
-                : 'bg-gray-800 bg-opacity-60 hover:bg-opacity-70'
+                ? 'bg-pink-600 shadow-lg'
+                : 'bg-white hover:bg-pink-600'
             }`}
-            style={{
-              color: filter === 'privilege' ? '#9333ea' : '#ffffff',
-              textShadow: filter === 'privilege' ? 'none' : '1px 1px 2px rgba(0,0,0,0.5)'
+            style={{ color: filter === 'privilege' ? '#ffffff' : '#db2777' }}
+            onMouseEnter={(e) => {
+              if (filter !== 'privilege') {
+                e.currentTarget.style.color = '#ffffff';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (filter !== 'privilege') {
+                e.currentTarget.style.color = '#db2777';
+              }
             }}
           >
             👑 특권
