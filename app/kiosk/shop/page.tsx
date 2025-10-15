@@ -144,14 +144,17 @@ export default function KioskShopPage() {
       {/* 헤더 */}
       <header className="bg-white bg-opacity-20 backdrop-blur-md shadow-lg">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white">🏪 상점</h1>
+          <h1 className="text-2xl font-bold" style={{ color: '#ffffff', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+            🏪 상점
+          </h1>
           <div className="flex items-center space-x-4">
-            <div className="bg-white bg-opacity-30 px-4 py-2 rounded-lg font-bold text-white">
+            <div className="bg-white bg-opacity-30 px-4 py-2 rounded-lg font-bold" style={{ color: '#ffffff', textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
               💰 {student.points}P
             </div>
             <Link
               href="/kiosk/home"
-              className="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition font-semibold"
+              className="bg-white px-4 py-2 rounded-lg hover:bg-gray-100 transition font-semibold"
+              style={{ color: '#9333ea' }}
             >
               홈으로
             </Link>
@@ -168,9 +171,12 @@ export default function KioskShopPage() {
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'all'
                 ? 'bg-white shadow-lg'
-                : 'bg-white bg-opacity-30 hover:bg-opacity-40'
+                : 'bg-gray-800 bg-opacity-60 hover:bg-opacity-70'
             }`}
-            style={{ color: filter === 'all' ? '#9333ea' : '#ffffff' }}
+            style={{
+              color: filter === 'all' ? '#9333ea' : '#ffffff',
+              textShadow: filter === 'all' ? 'none' : '1px 1px 2px rgba(0,0,0,0.5)'
+            }}
           >
             전체
           </button>
@@ -179,9 +185,12 @@ export default function KioskShopPage() {
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'time'
                 ? 'bg-white shadow-lg'
-                : 'bg-white bg-opacity-30 hover:bg-opacity-40'
+                : 'bg-gray-800 bg-opacity-60 hover:bg-opacity-70'
             }`}
-            style={{ color: filter === 'time' ? '#2563eb' : '#ffffff' }}
+            style={{
+              color: filter === 'time' ? '#2563eb' : '#ffffff',
+              textShadow: filter === 'time' ? 'none' : '1px 1px 2px rgba(0,0,0,0.5)'
+            }}
           >
             ⏰ 자유시간
           </button>
@@ -190,9 +199,12 @@ export default function KioskShopPage() {
             className={`px-6 py-3 rounded-lg font-bold transition ${
               filter === 'privilege'
                 ? 'bg-white shadow-lg'
-                : 'bg-white bg-opacity-30 hover:bg-opacity-40'
+                : 'bg-gray-800 bg-opacity-60 hover:bg-opacity-70'
             }`}
-            style={{ color: filter === 'privilege' ? '#9333ea' : '#ffffff' }}
+            style={{
+              color: filter === 'privilege' ? '#9333ea' : '#ffffff',
+              textShadow: filter === 'privilege' ? 'none' : '1px 1px 2px rgba(0,0,0,0.5)'
+            }}
           >
             👑 특권
           </button>
