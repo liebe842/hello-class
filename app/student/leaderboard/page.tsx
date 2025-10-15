@@ -173,3 +173,15 @@ function LeaderboardContent() {
     </div>
   );
 }
+
+export default function LeaderboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-600">로딩 중...</div>
+      </div>
+    }>
+      <LeaderboardContent />
+    </Suspense>
+  );
+}

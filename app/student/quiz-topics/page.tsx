@@ -249,3 +249,15 @@ function QuizTopicsContent() {
     </div>
   );
 }
+
+export default function StudentQuizTopicsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-800 text-2xl">로딩 중...</div>
+      </div>
+    }>
+      <QuizTopicsContent />
+    </Suspense>
+  );
+}
