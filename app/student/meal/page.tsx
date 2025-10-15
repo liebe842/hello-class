@@ -22,24 +22,38 @@ export default function StudentMealPage() {
   const fetchWeekMeals = async () => {
     try {
       const today = new Date();
-      const dayOfWeek = today.getDay(); // 0: 일, 1: 월, ..., 5: 금
+      const dayOfWeek = today.getDay(); // 0: 일, 1: 월, ..., 6: 토
       const thisMonday = new Date(today);
       thisMonday.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)); // 이번 주 월요일
 
       const meals: {[key: string]: Meal[]} = {};
 
-      // 이번 주 + 다음 주 월~금 급식 가져오기 (14일 = 2주)
-      for (let i = 0; i < 14; i++) {
+      // 이번 주 + 다음 주 월~금 급식 가져오기 (평일만, 총 10일)
+      // 월요일부터 시작해서 평일만 10일 가져오기
+      let weekdaysAdded = 0;
+      let offset = 0;
+
+      while (weekdaysAdded < 10) {
         const date = new Date(thisMonday);
-        date.setDate(thisMonday.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+        date.setDate(thisMonday.getDate() + offset);
 
-        const response = await fetch(`/api/neis/meal?date=${dateStr}`);
-        const data = await response.json();
+        const day = date.getDay();
 
-        if (data.meals && data.meals.length > 0) {
-          meals[dateStr] = data.meals;
+        // 평일(월~금)인 경우만 API 요청
+        if (day >= 1 && day <= 5) {
+          const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+
+          const response = await fetch(`/api/neis/meal?date=${dateStr}`);
+          const data = await response.json();
+
+          if (data.meals && data.meals.length > 0) {
+            meals[dateStr] = data.meals;
+          }
+
+          weekdaysAdded++;
         }
+
+        offset++;
       }
 
       setWeekMeals(meals);
@@ -108,8 +122,10 @@ export default function StudentMealPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Object.entries(weekMeals).map(([date, meals]) => {
-              const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
-              const isToday = date === today;
+              // 한국 시간 기준 오늘 날짜
+              const now = new Date();
+              const todayFormatted = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+              const isToday = date === todayFormatted;
 
               return (
                 <div

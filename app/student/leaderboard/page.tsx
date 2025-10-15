@@ -296,24 +296,24 @@ export default function LeaderboardPage() {
           <h3 className="text-xl font-bold mb-4">📌 내 순위</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <div className="text-sm mb-1">점수 순위</div>
-              <div className="text-3xl font-bold">
+              <div className="text-sm mb-1 text-purple-900">점수 순위</div>
+              <div className="text-3xl font-bold text-purple-900">
                 {scoreLeaderboard.findIndex(e => e.studentId === studentData.id) !== -1
                   ? `${scoreLeaderboard.findIndex(e => e.studentId === studentData.id) + 1}위`
                   : '-'}
               </div>
-              <div className="text-xs mt-1 opacity-80">
+              <div className="text-xs mt-1 text-purple-800">
                 {scoreLeaderboard.find(e => e.studentId === studentData.id)?.averageScore || 0}점 평균
               </div>
             </div>
             <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <div className="text-sm mb-1">퀴즈 제작 순위</div>
-              <div className="text-3xl font-bold">
+              <div className="text-sm mb-1 text-purple-900">퀴즈 제작 순위</div>
+              <div className="text-3xl font-bold text-purple-900">
                 {quizLeaderboard.findIndex(e => e.studentId === studentData.id) !== -1
                   ? `${quizLeaderboard.findIndex(e => e.studentId === studentData.id) + 1}위`
                   : '-'}
               </div>
-              <div className="text-xs mt-1 opacity-80">
+              <div className="text-xs mt-1 text-purple-800">
                 검증 {quizLeaderboard.find(e => e.studentId === studentData.id)?.verifiedQuizzes || 0}개
               </div>
             </div>

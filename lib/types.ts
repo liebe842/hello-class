@@ -194,9 +194,11 @@ export type BadgeType =
   | 'subject_master'       // 특정 과목 평균 90점 이상
   | 'helper'               // 다른 학생 퀴즈 50개 풀기
   | 'problem_solver'       // 다른 학생 퀴즈 100개 풀기
-  | 'streak_3'             // 3일 연속 출석
-  | 'streak_7'             // 7일 연속 출석
-  | 'early_bird';          // 일찍 출석 (오전 8시 이전)
+  | 'happy_virus'          // 행복 바이러스 - '행복해요' 감정 30회 선택
+  | 'positive_king'        // 긍정왕 - '신나요' 감정 20회 선택
+  | 'goal_achiever'        // 목표 달성자 - 학생 목표 3개 달성
+  | 'photographer'         // 사진작가 - 출석 사진 공개 20회
+  | 'praiser';             // 칭찬하는 아이 - 칭찬 10회 작성
 
 // 배지 정보
 export interface BadgeInfo {
@@ -286,6 +288,8 @@ export interface StudentGoal {
   startDate: string;       // YYYY-MM-DD
   endDate: string;         // YYYY-MM-DD
   checkDates: string[];    // 체크한 날짜들 ["2025-01-15", ...]
+  currentStreak: number;   // 현재 연속 달성 일수
+  longestStreak: number;   // 최장 연속 달성 일수
   status: 'active' | 'completed' | 'failed';  // 진행중/완료/실패
   createdAt: Date;
 }

@@ -29,7 +29,6 @@ export default function StudentGoalsPage() {
   const [goalTitle, setGoalTitle] = useState('');
   const [goalDescription, setGoalDescription] = useState('');
   const [goalTargetCount, setGoalTargetCount] = useState(10);
-  const [goalUnit, setGoalUnit] = useState('회');
   const [goalEndDate, setGoalEndDate] = useState('');
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
 
@@ -80,20 +79,26 @@ export default function StudentGoalsPage() {
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      const goalData: Omit<StudentGoal, 'id'> = {
+      const goalData: any = {
         studentId: student.id,
         studentName: student.name,
         title: goalTitle.trim(),
-        description: goalDescription.trim() || undefined,
         targetCount: goalTargetCount,
         currentCount: 0,
-        unit: goalUnit,
+        unit: '회',
         startDate: today,
         endDate: goalEndDate,
         checkDates: [],
+        currentStreak: 0,
+        longestStreak: 0,
         status: 'active',
-        createdAt: Timestamp.now() as unknown as Date,
+        createdAt: Timestamp.now(),
       };
+
+      // description이 있을 때만 추가
+      if (goalDescription.trim()) {
+        goalData.description = goalDescription.trim();
+      }
 
       await addDoc(collection(db, 'studentGoals'), goalData);
 
@@ -102,7 +107,6 @@ export default function StudentGoalsPage() {
       setGoalTitle('');
       setGoalDescription('');
       setGoalTargetCount(10);
-      setGoalUnit('회');
       setGoalEndDate('');
 
       fetchGoals(student.id);
@@ -112,6 +116,47 @@ export default function StudentGoalsPage() {
     } finally {
       setIsCreatingGoal(false);
     }
+  };
+
+  // 연속 달성 일수 계산
+  const calculateStreak = (checkDates: string[], newDate: string): { currentStreak: number; longestStreak: number } => {
+    const sortedDates = [...checkDates, newDate].sort();
+
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let tempStreak = 1;
+
+    for (let i = sortedDates.length - 1; i >= 0; i--) {
+      if (i === sortedDates.length - 1) {
+        // 최신 날짜부터 시작
+        continue;
+      }
+
+      const currentDate = new Date(sortedDates[i + 1]);
+      const prevDate = new Date(sortedDates[i]);
+      const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        // 연속된 날짜
+        tempStreak++;
+      } else {
+        // 연속이 끊김
+        if (i === sortedDates.length - 2) {
+          // 현재 연속 기록
+          currentStreak = tempStreak;
+        }
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 1;
+      }
+    }
+
+    // 마지막까지 연속된 경우
+    if (tempStreak > 0) {
+      currentStreak = tempStreak;
+      longestStreak = Math.max(longestStreak, tempStreak);
+    }
+
+    return { currentStreak, longestStreak };
   };
 
   const handleCheckGoal = async (goal: StudentGoal) => {
@@ -129,6 +174,11 @@ export default function StudentGoalsPage() {
       const newCurrentCount = goal.currentCount + 1;
       const newCheckDates = [...goal.checkDates, today];
       let newStatus = goal.status;
+
+      // 연속 달성 계산
+      const streakInfo = calculateStreak(goal.checkDates, today);
+      const newCurrentStreak = streakInfo.currentStreak;
+      const newLongestStreak = Math.max(goal.longestStreak || 0, streakInfo.longestStreak);
 
       // 목표 달성 확인
       if (newCurrentCount >= goal.targetCount) {
@@ -155,6 +205,8 @@ export default function StudentGoalsPage() {
       await updateDoc(doc(db, 'studentGoals', goal.id), {
         currentCount: newCurrentCount,
         checkDates: newCheckDates,
+        currentStreak: newCurrentStreak,
+        longestStreak: newLongestStreak,
         status: newStatus,
       });
 
@@ -162,6 +214,66 @@ export default function StudentGoalsPage() {
     } catch (error) {
       console.error('목표 체크 실패:', error);
       alert('체크에 실패했습니다.');
+    }
+  };
+
+  const handleUncheckGoal = async (goal: StudentGoal) => {
+    if (!student) return;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // 오늘 체크하지 않았으면 취소 불가
+    if (!goal.checkDates.includes(today)) {
+      alert('오늘 체크한 기록이 없습니다.');
+      return;
+    }
+
+    if (!confirm('오늘의 체크를 취소하시겠습니까?')) return;
+
+    try {
+      const newCurrentCount = Math.max(0, goal.currentCount - 1);
+      const newCheckDates = goal.checkDates.filter(date => date !== today);
+
+      // 연속 달성 재계산
+      let newCurrentStreak = 0;
+      let newLongestStreak = goal.longestStreak || 0;
+
+      if (newCheckDates.length > 0) {
+        const sortedDates = [...newCheckDates].sort();
+        let tempStreak = 1;
+        let maxStreak = 1;
+
+        for (let i = sortedDates.length - 1; i > 0; i--) {
+          const currentDate = new Date(sortedDates[i]);
+          const prevDate = new Date(sortedDates[i - 1]);
+          const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (diffDays === 1) {
+            tempStreak++;
+          } else {
+            if (i === sortedDates.length - 1) {
+              newCurrentStreak = tempStreak;
+            }
+            maxStreak = Math.max(maxStreak, tempStreak);
+            tempStreak = 1;
+          }
+        }
+
+        newCurrentStreak = tempStreak;
+        newLongestStreak = Math.max(maxStreak, tempStreak);
+      }
+
+      await updateDoc(doc(db, 'studentGoals', goal.id), {
+        currentCount: newCurrentCount,
+        checkDates: newCheckDates,
+        currentStreak: newCurrentStreak,
+        longestStreak: newLongestStreak,
+      });
+
+      fetchGoals(student.id);
+    } catch (error) {
+      console.error('체크 취소 실패:', error);
+      alert('체크 취소에 실패했습니다.');
     }
   };
 
@@ -209,14 +321,8 @@ export default function StudentGoalsPage() {
   return (
     <div className="p-8">
       {/* 헤더 */}
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800">🎯 나의 목표</h1>
-        <button
-          onClick={() => setShowGoalModal(true)}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold transition"
-        >
-          ➕ 새 목표 만들기
-        </button>
       </div>
 
       {/* 메인 */}
@@ -246,7 +352,14 @@ export default function StudentGoalsPage() {
                   <div key={goal.id} className="bg-white rounded-xl shadow-lg p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-800 mb-1">{goal.title}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-bold text-gray-800">{goal.title}</h3>
+                          {(goal.currentStreak || 0) > 0 && (
+                            <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                              🔥 {goal.currentStreak}일 연속
+                            </span>
+                          )}
+                        </div>
                         {goal.description && (
                           <p className="text-sm text-gray-600 mb-2">{goal.description}</p>
                         )}
@@ -257,6 +370,14 @@ export default function StudentGoalsPage() {
                           <span className="text-gray-500">
                             ~ {new Date(goal.endDate).toLocaleDateString('ko-KR')}
                           </span>
+                          {(goal.longestStreak || 0) > 0 && (
+                            <>
+                              <span className="text-gray-400">•</span>
+                              <span className="text-orange-600 text-xs font-semibold">
+                                최장 {goal.longestStreak}일
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <button
@@ -285,12 +406,11 @@ export default function StudentGoalsPage() {
 
                     {/* 체크 버튼 */}
                     <button
-                      onClick={() => handleCheckGoal(goal)}
-                      disabled={!canCheckToday}
+                      onClick={() => canCheckToday ? handleCheckGoal(goal) : handleUncheckGoal(goal)}
                       className={`w-full py-3 rounded-lg font-semibold transition ${
                         canCheckToday
                           ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
-                          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
                       }`}
                     >
                       {canCheckToday ? '✅ 오늘 체크하기' : '✓ 오늘 완료!'}
@@ -310,7 +430,15 @@ export default function StudentGoalsPage() {
               {completedGoals.map(goal => (
                 <div key={goal.id} className="bg-gradient-to-br from-green-100 to-teal-100 rounded-xl shadow-lg p-6 border-2 border-green-400">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-bold text-gray-800">{goal.title}</h3>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-800 mb-1">{goal.title}</h3>
+                      {(goal.longestStreak || 0) > 0 && (
+                        <div className="flex items-center gap-1 text-sm mb-2">
+                          <span className="text-orange-600 font-semibold">🔥 최고 기록:</span>
+                          <span className="text-orange-700 font-bold">{goal.longestStreak}일 연속</span>
+                        </div>
+                      )}
+                    </div>
                     <span className="text-3xl">🎉</span>
                   </div>
                   <p className="text-sm text-gray-700 mb-3">
@@ -363,7 +491,7 @@ export default function StudentGoalsPage() {
                   type="text"
                   value={goalTitle}
                   onChange={(e) => setGoalTitle(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-800"
                   placeholder="예: 매일 퀴즈 1개 만들기"
                   required
                 />
@@ -377,13 +505,13 @@ export default function StudentGoalsPage() {
                 <textarea
                   value={goalDescription}
                   onChange={(e) => setGoalDescription(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-800"
                   rows={2}
                   placeholder="목표에 대한 간단한 설명..."
                 />
               </div>
 
-              {/* 목표 횟수 */}
+              {/* 목표 횟수와 마감일 */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -393,43 +521,24 @@ export default function StudentGoalsPage() {
                     type="number"
                     value={goalTargetCount}
                     onChange={(e) => setGoalTargetCount(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-800"
                     min="1"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    단위 *
+                    마감일 *
                   </label>
-                  <select
-                    value={goalUnit}
-                    onChange={(e) => setGoalUnit(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="회">회</option>
-                    <option value="일">일</option>
-                    <option value="개">개</option>
-                    <option value="권">권</option>
-                    <option value="시간">시간</option>
-                    <option value="페이지">페이지</option>
-                  </select>
+                  <input
+                    type="date"
+                    value={goalEndDate}
+                    onChange={(e) => setGoalEndDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-800"
+                    required
+                  />
                 </div>
-              </div>
-
-              {/* 마감일 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  마감일 *
-                </label>
-                <input
-                  type="date"
-                  value={goalEndDate}
-                  onChange={(e) => setGoalEndDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  required
-                />
               </div>
             </div>
 

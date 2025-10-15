@@ -314,6 +314,19 @@ export default function StudentAssignmentsPage() {
 
   if (!student) return null;
 
+  // 과제 정렬: 미제출 과제 우선, 마감일 빠른 순
+  const sortedAssignments = [...assignments].sort((a, b) => {
+    const aSubmitted = submissions[a.id]?.isCompleted;
+    const bSubmitted = submissions[b.id]?.isCompleted;
+
+    // 미제출 과제를 먼저
+    if (aSubmitted && !bSubmitted) return 1;
+    if (!aSubmitted && bSubmitted) return -1;
+
+    // 같은 제출 상태면 마감일 빠른 순
+    return a.dueDate.getTime() - b.dueDate.getTime();
+  });
+
   return (
     <div className="p-8">
       {/* 헤더 */}
@@ -329,21 +342,37 @@ export default function StudentAssignmentsPage() {
               <p className="text-gray-500 text-lg">등록된 과제가 없습니다.</p>
             </div>
           ) : (
-            assignments.map((assignment) => {
+            sortedAssignments.map((assignment) => {
               const submission = submissions[assignment.id];
               const isSubmitted = submission?.isCompleted;
               const isLate = submission?.isLate;
 
+              // 마감일 상태 확인
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const dueDate = new Date(assignment.dueDate);
+              dueDate.setHours(0, 0, 0, 0);
+              const isOverdue = dueDate < today && !isSubmitted;
+              const isToday = dueDate.getTime() === today.getTime() && !isSubmitted;
+
               return (
                 <div
                   key={assignment.id}
-                  className={`bg-white rounded-xl shadow-md p-6 ${
-                    isSubmitted ? 'border-2 border-green-500' : 'border-2 border-gray-200'
+                  className={`rounded-xl shadow-md p-6 border-2 transition ${
+                    isSubmitted
+                      ? 'bg-white border-green-500'
+                      : isOverdue
+                      ? 'bg-red-50 border-red-300 shadow-lg'
+                      : isToday
+                      ? 'bg-yellow-50 border-yellow-300 shadow-lg'
+                      : 'bg-white border-gray-200'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                        {isOverdue && <span className="text-2xl">⚠️</span>}
+                        {isToday && <span className="text-2xl">🔥</span>}
                         {assignment.title}
                         {isSubmitted && (
                           <span className="ml-3 text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full">
@@ -352,8 +381,12 @@ export default function StudentAssignmentsPage() {
                         )}
                       </h3>
                       <p className="text-gray-600 mb-3">{assignment.description}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className={`text-sm font-semibold ${
+                        isOverdue ? 'text-red-600' : isToday ? 'text-yellow-700' : 'text-gray-500'
+                      }`}>
                         마감: {assignment.dueDate.toLocaleDateString('ko-KR')}
+                        {isOverdue && ' (기한 초과!)'}
+                        {isToday && ' (오늘 마감!)'}
                       </p>
 
                       {isSubmitted && (

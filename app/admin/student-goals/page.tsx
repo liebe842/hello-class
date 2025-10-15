@@ -193,7 +193,21 @@ export default function AdminStudentGoalsPage() {
                         }`}
                       >
                         <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-semibold text-gray-800 flex-1">{goal.title}</h4>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-800 mb-1">{goal.title}</h4>
+                            {goal.status === 'active' && (goal.currentStreak || 0) > 0 && (
+                              <div className="flex items-center gap-1 mb-1">
+                                <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded text-xs font-bold">
+                                  🔥 {goal.currentStreak}일 연속
+                                </span>
+                              </div>
+                            )}
+                            {goal.status === 'completed' && (goal.longestStreak || 0) > 0 && (
+                              <div className="text-xs text-orange-600 font-semibold mb-1">
+                                🔥 최고 기록: {goal.longestStreak}일 연속
+                              </div>
+                            )}
+                          </div>
                           {goal.status === 'completed' && (
                             <span className="text-xl">🏆</span>
                           )}

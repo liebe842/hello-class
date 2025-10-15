@@ -173,34 +173,32 @@ export default function StudentPraiseListPage() {
           </div>
         </div>
 
-        {/* 통계 (받은 칭찬일 때만 표시) */}
-        {viewMode === 'received' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="text-sm text-gray-600 mb-1">받은 칭찬</div>
-              <div className="text-3xl font-bold text-pink-600">{stats.totalReceived}개</div>
+        {/* 통계 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="text-sm text-gray-600 mb-1">받은 칭찬</div>
+            <div className="text-3xl font-bold text-pink-600">{stats.totalReceived}개</div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="text-sm text-gray-600 mb-1">나의 강점</div>
+            <div className="text-2xl font-bold text-purple-600">
+              {stats.topCategory ? (
+                <>
+                  {CATEGORY_EMOJIS[stats.topCategory]} {CATEGORY_LABELS[stats.topCategory]}
+                </>
+              ) : (
+                '-'
+              )}
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="text-sm text-gray-600 mb-1">나의 강점</div>
-              <div className="text-2xl font-bold text-purple-600">
-                {stats.topCategory ? (
-                  <>
-                    {CATEGORY_EMOJIS[stats.topCategory]} {CATEGORY_LABELS[stats.topCategory]}
-                  </>
-                ) : (
-                  '-'
-                )}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                {stats.topCategory ? `${stats.byCategory[stats.topCategory]}번 칭찬받음` : '칭찬을 받아보세요!'}
-              </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="text-sm text-gray-600 mb-1">보낸 칭찬</div>
-              <div className="text-3xl font-bold text-blue-600">{sentPraises.length}개</div>
+            <div className="text-sm text-gray-500 mt-1">
+              {stats.topCategory ? `${stats.byCategory[stats.topCategory]}번 칭찬받음` : '칭찬을 받아보세요!'}
             </div>
           </div>
-        )}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="text-sm text-gray-600 mb-1">보낸 칭찬</div>
+            <div className="text-3xl font-bold text-blue-600">{sentPraises.length}개</div>
+          </div>
+        </div>
 
         {/* 카테고리별 통계 (받은 칭찬일 때만 표시) */}
         {viewMode === 'received' && stats.totalReceived > 0 && (

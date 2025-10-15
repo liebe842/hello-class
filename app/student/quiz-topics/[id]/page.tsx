@@ -460,28 +460,28 @@ export default function StudentQuizTopicDetailPage() {
   const isExpired = new Date() > topic.dueDate;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="p-8">
       {/* 헤더 */}
-      <header className="bg-purple-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+      <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">{topic.title}</h1>
-            <p className="text-purple-100 text-sm mt-1">
+            <h1 className="text-3xl font-bold text-gray-800">{topic.title}</h1>
+            <p className="text-gray-600 text-sm mt-1">
               {topic.subject} | 마감: {topic.dueDate.toLocaleDateString('ko-KR')}
-              {isExpired && <span className="ml-2 bg-red-500 px-2 py-1 rounded text-xs">마감됨</span>}
+              {isExpired && <span className="ml-2 bg-red-500 text-white px-2 py-1 rounded text-xs">마감됨</span>}
             </p>
           </div>
           <Link
             href="/student/quiz-topics"
-            className="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+            className="bg-purple-500 text-white px-6 py-3 rounded-xl hover:bg-purple-600 transition font-medium"
           >
             목록으로
           </Link>
         </div>
-      </header>
+      </div>
 
       {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-6 py-8">
+      <div>
         {/* 통계 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-4">
@@ -800,7 +800,7 @@ export default function StudentQuizTopicDetailPage() {
             )}
           </div>
         </div>
-      </main>
+      </div>
 
       {/* 퀴즈 생성/수정 모달 */}
       {showQuizModal && (

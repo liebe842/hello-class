@@ -1,8 +1,8 @@
 import type { BadgeType, BadgeInfo } from './types';
 
-// 모든 배지 정보
+// 모든 배지 정보 (희귀도 순: 일반 > 레어 > 에픽 > 전설)
 export const BADGES: Record<BadgeType, BadgeInfo> = {
-  // 퀴즈 제작 관련
+  // === 일반 (Common) ===
   first_quiz: {
     type: 'first_quiz',
     name: '첫 퀴즈',
@@ -19,6 +19,16 @@ export const BADGES: Record<BadgeType, BadgeInfo> = {
     color: 'bg-green-500',
     rarity: 'common',
   },
+  challenge_10: {
+    type: 'challenge_10',
+    name: '도전자',
+    description: '퀴즈 도전 10회를 달성했어요!',
+    emoji: '🔥',
+    color: 'bg-red-500',
+    rarity: 'common',
+  },
+
+  // === 레어 (Rare) ===
   quiz_master_10: {
     type: 'quiz_master_10',
     name: '퀴즈 마스터',
@@ -27,8 +37,6 @@ export const BADGES: Record<BadgeType, BadgeInfo> = {
     color: 'bg-purple-500',
     rarity: 'rare',
   },
-
-  // 점수 관련
   perfect_score: {
     type: 'perfect_score',
     name: '완벽주의자',
@@ -45,26 +53,6 @@ export const BADGES: Record<BadgeType, BadgeInfo> = {
     color: 'bg-orange-500',
     rarity: 'rare',
   },
-
-  // 도전 횟수 관련
-  challenge_10: {
-    type: 'challenge_10',
-    name: '도전자',
-    description: '퀴즈 도전 10회를 달성했어요!',
-    emoji: '🔥',
-    color: 'bg-red-500',
-    rarity: 'common',
-  },
-  challenge_50: {
-    type: 'challenge_50',
-    name: '열정가',
-    description: '퀴즈 도전 50회를 달성했어요!',
-    emoji: '💪',
-    color: 'bg-pink-500',
-    rarity: 'epic',
-  },
-
-  // 검증 관련
   verified_creator: {
     type: 'verified_creator',
     name: '인정받은 제작자',
@@ -72,6 +60,56 @@ export const BADGES: Record<BadgeType, BadgeInfo> = {
     emoji: '✅',
     color: 'bg-green-600',
     rarity: 'rare',
+  },
+  helper: {
+    type: 'helper',
+    name: '협력왕',
+    description: '다른 친구 퀴즈 50개를 풀었어요!',
+    emoji: '🤝',
+    color: 'bg-cyan-500',
+    rarity: 'rare',
+  },
+  happy_virus: {
+    type: 'happy_virus',
+    name: '행복 바이러스',
+    description: '\'행복해요\' 감정 30회 선택',
+    emoji: '😊',
+    color: 'bg-yellow-500',
+    rarity: 'rare',
+  },
+  positive_king: {
+    type: 'positive_king',
+    name: '긍정왕',
+    description: '\'신나요\' 감정 20회 선택',
+    emoji: '🤩',
+    color: 'bg-pink-500',
+    rarity: 'rare',
+  },
+  photographer: {
+    type: 'photographer',
+    name: '사진작가',
+    description: '출석 사진 공개 20회',
+    emoji: '📸',
+    color: 'bg-blue-500',
+    rarity: 'rare',
+  },
+  praiser: {
+    type: 'praiser',
+    name: '칭찬하는 아이',
+    description: '칭찬 10회 작성',
+    emoji: '💝',
+    color: 'bg-rose-500',
+    rarity: 'rare',
+  },
+
+  // === 에픽 (Epic) ===
+  challenge_50: {
+    type: 'challenge_50',
+    name: '열정가',
+    description: '퀴즈 도전 50회를 달성했어요!',
+    emoji: '💪',
+    color: 'bg-pink-500',
+    rarity: 'epic',
   },
   verified_master: {
     type: 'verified_master',
@@ -81,16 +119,6 @@ export const BADGES: Record<BadgeType, BadgeInfo> = {
     color: 'bg-emerald-600',
     rarity: 'epic',
   },
-
-  // 순위 관련
-  top_ranker: {
-    type: 'top_ranker',
-    name: '1등',
-    description: '리더보드 1위를 달성했어요!',
-    emoji: '🥇',
-    color: 'bg-yellow-600',
-    rarity: 'legendary',
-  },
   top_3: {
     type: 'top_3',
     name: '상위권',
@@ -99,8 +127,6 @@ export const BADGES: Record<BadgeType, BadgeInfo> = {
     color: 'bg-orange-600',
     rarity: 'epic',
   },
-
-  // 과목 마스터
   subject_master: {
     type: 'subject_master',
     name: '과목 마스터',
@@ -108,16 +134,6 @@ export const BADGES: Record<BadgeType, BadgeInfo> = {
     emoji: '📚',
     color: 'bg-indigo-600',
     rarity: 'epic',
-  },
-
-  // 협력 관련
-  helper: {
-    type: 'helper',
-    name: '협력왕',
-    description: '다른 친구 퀴즈 50개를 풀었어요!',
-    emoji: '🤝',
-    color: 'bg-cyan-500',
-    rarity: 'rare',
   },
   problem_solver: {
     type: 'problem_solver',
@@ -127,31 +143,23 @@ export const BADGES: Record<BadgeType, BadgeInfo> = {
     color: 'bg-blue-600',
     rarity: 'epic',
   },
+  goal_achiever: {
+    type: 'goal_achiever',
+    name: '목표 달성자',
+    description: '학생 목표 3개 달성',
+    emoji: '🎯',
+    color: 'bg-purple-500',
+    rarity: 'epic',
+  },
 
-  // 출석 관련
-  streak_3: {
-    type: 'streak_3',
-    name: '성실한 학생',
-    description: '3일 연속 출석했어요!',
-    emoji: '📅',
-    color: 'bg-teal-500',
-    rarity: 'common',
-  },
-  streak_7: {
-    type: 'streak_7',
-    name: '개근상',
-    description: '7일 연속 출석했어요!',
-    emoji: '🎖️',
-    color: 'bg-teal-600',
-    rarity: 'rare',
-  },
-  early_bird: {
-    type: 'early_bird',
-    name: '아침형 인간',
-    description: '오전 8시 이전에 출석했어요!',
-    emoji: '🌅',
-    color: 'bg-sky-500',
-    rarity: 'common',
+  // === 전설 (Legendary) ===
+  top_ranker: {
+    type: 'top_ranker',
+    name: '1등',
+    description: '리더보드 1위를 달성했어요!',
+    emoji: '🥇',
+    color: 'bg-yellow-600',
+    rarity: 'legendary',
   },
 };
 
@@ -190,10 +198,15 @@ export interface BadgeCheckData {
   attemptScores: number[];
   totalAttempts: number;
   othersQuizzesSolved: number;
-  attendanceStreak: number;
-  hasEarlyAttendance: boolean;
   leaderboardRank: number | null;
   subjectAverages: Record<string, number>;
+  happyEmotionCount?: number;        // '행복해요' 감정 선택 횟수
+  excitedEmotionCount?: number;      // '신나요' 감정 선택 횟수
+  completedGoalsCount?: number;      // 완료한 목표 개수
+  photoPublicCount?: number;         // 사진 공개한 출석 횟수
+  praisesGivenCount?: number;        // 작성한 칭찬 횟수
+  attendanceStreak?: number;         // 출석 연속 일수
+  hasEarlyAttendance?: boolean;      // 오전 8시 이전 출석 여부
 }
 
 export function checkBadgeEligibility(
@@ -243,13 +256,23 @@ export function checkBadgeEligibility(
     case 'problem_solver':
       return data.othersQuizzesSolved >= 100;
 
-    // 출석
-    case 'streak_3':
-      return data.attendanceStreak >= 3;
-    case 'streak_7':
-      return data.attendanceStreak >= 7;
-    case 'early_bird':
-      return data.hasEarlyAttendance;
+    // 감정/출석
+    case 'happy_virus':
+      return (data.happyEmotionCount ?? 0) >= 30;
+    case 'positive_king':
+      return (data.excitedEmotionCount ?? 0) >= 20;
+
+    // 목표
+    case 'goal_achiever':
+      return (data.completedGoalsCount ?? 0) >= 3;
+
+    // 사진 공개
+    case 'photographer':
+      return (data.photoPublicCount ?? 0) >= 20;
+
+    // 칭찬
+    case 'praiser':
+      return (data.praisesGivenCount ?? 0) >= 10;
 
     default:
       return false;

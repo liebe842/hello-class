@@ -8,7 +8,7 @@ import Webcam from 'react-webcam';
 import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, Timestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
-import type { Student, Attendance, EmotionType } from '@/lib/types';
+import type { Student, Attendance, EmotionType, StudentGoal } from '@/lib/types';
 
 // 타입 정의
 interface ScheduleEvent {
@@ -48,6 +48,9 @@ export default function StudentDashboardPage() {
   const [todayMeal, setTodayMeal] = useState<MealData | null>(null);
   const [todayClasses, setTodayClasses] = useState<string[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [activeGoals, setActiveGoals] = useState<StudentGoal[]>([]);
+  const [leaderboard, setLeaderboard] = useState<Student[]>([]);
+  const [myRank, setMyRank] = useState<number>(0);
 
   useEffect(() => {
     // localStorage에서 학생 세션 확인
@@ -63,8 +66,10 @@ export default function StudentDashboardPage() {
     // 모든 데이터 불러오기
     const fetchAllData = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()];
+        // 로컬 시간 기준 오늘 날짜
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][now.getDay()];
 
         // 출석 데이터
         const attendanceRef = collection(db, 'attendance');
@@ -112,32 +117,35 @@ export default function StudentDashboardPage() {
           setTodayClasses(classes);
         }
 
-        // 급식 (오늘) - NEIS API 호출
-        try {
-          const todayFormatted = today.replace(/-/g, ''); // YYYY-MM-DD → YYYYMMDD
-          const mealResponse = await fetch(`/api/neis/meal?date=${todayFormatted}`);
-          const mealData = await mealResponse.json();
+        // 급식 (오늘) - NEIS API 호출 (평일만)
+        const todayDay = new Date().getDay(); // 0: 일, 1: 월, ..., 6: 토
+        if (todayDay >= 1 && todayDay <= 5) {
+          try {
+            const todayFormatted = today.replace(/-/g, ''); // YYYY-MM-DD → YYYYMMDD
+            const mealResponse = await fetch(`/api/neis/meal?date=${todayFormatted}`);
+            const mealData = await mealResponse.json();
 
-          if (mealData.meals && mealData.meals.length > 0) {
-            // 중식만 표시
-            const lunch = mealData.meals.find((m: { mealName: string }) => m.mealName === '중식');
-            if (lunch) {
-              const menu = lunch.dishName
-                .replace(/<br\/>/g, '\n')
-                .replace(/\([0-9.]+\)/g, '')
-                .trim()
-                .split('\n')
-                .filter((item: string) => item.trim());
+            if (mealData.meals && mealData.meals.length > 0) {
+              // 중식만 표시
+              const lunch = mealData.meals.find((m: { mealName: string }) => m.mealName === '중식');
+              if (lunch) {
+                const menu = lunch.dishName
+                  .replace(/<br\/>/g, '\n')
+                  .replace(/\([0-9.]+\)/g, '')
+                  .trim()
+                  .split('\n')
+                  .filter((item: string) => item.trim());
 
-              setTodayMeal({
-                id: todayFormatted,
-                date: today,
-                menu
-              });
+                setTodayMeal({
+                  id: todayFormatted,
+                  date: today,
+                  menu
+                });
+              }
             }
+          } catch (error) {
+            console.error('급식 정보 가져오기 실패:', error);
           }
-        } catch (error) {
-          console.error('급식 정보 가져오기 실패:', error);
         }
 
         // 과제 (미제출 + 최근 마감 순)
@@ -164,6 +172,34 @@ export default function StudentDashboardPage() {
           .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
           .slice(0, 5) as Assignment[]; // 5개까지 표시
         setAssignments(pendingAssignments);
+
+        // 학생 목표 가져오기 (진행 중인 목표만)
+        const goalsRef = collection(db, 'studentGoals');
+        const goalsQuery = query(goalsRef, where('studentId', '==', studentData.id), where('status', '==', 'active'));
+        const goalsSnap = await getDocs(goalsQuery);
+        const goalsData = goalsSnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          startDate: doc.data().startDate,
+          endDate: doc.data().endDate,
+          createdAt: doc.data().createdAt?.toDate(),
+        })) as StudentGoal[];
+        setActiveGoals(goalsData);
+
+        // 리더보드 데이터 가져오기 (포인트 기준 상위 5명)
+        const studentsSnap = await getDocs(collection(db, 'students'));
+        const allStudents = studentsSnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Student[];
+
+        // 포인트 기준으로 정렬
+        const sortedStudents = allStudents.sort((a, b) => (b.points || 0) - (a.points || 0));
+        setLeaderboard(sortedStudents.slice(0, 5));
+
+        // 내 순위 찾기
+        const myRankIndex = sortedStudents.findIndex(s => s.id === studentData.id);
+        setMyRank(myRankIndex !== -1 ? myRankIndex + 1 : 0);
 
         setLoading(false);
       } catch (error) {
@@ -215,8 +251,9 @@ export default function StudentDashboardPage() {
 
   // 오늘 출석 여부 확인
   const todayAttendance = attendanceData.find(a => {
-    const today = new Date().toISOString().split('T')[0];
-    return a.date === today;
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    return a.date === todayStr;
   });
 
   // 출석 제출
@@ -373,11 +410,11 @@ export default function StudentDashboardPage() {
               </p>
             </div>
 
-            {/* 오른쪽: 포인트 + 출석 + 로그아웃 */}
-            <div className="flex items-center gap-4">
+            {/* 오른쪽: 포인트 + 출석 */}
+            <div className="flex items-stretch gap-4">
               {/* 포인트 카드 */}
-              <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl shadow-md p-4 text-white">
-                <div className="flex items-center gap-2 mb-2">
+              <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl shadow-md px-4 py-3 text-white flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
                   <div className="text-2xl">💎</div>
                   <div>
                     <p className="text-xs opacity-90">Point</p>
@@ -387,47 +424,37 @@ export default function StudentDashboardPage() {
                 <div className="flex gap-2">
                   <Link
                     href="/student/points"
-                    className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-1 rounded transition"
+                    className="text-xs text-white font-medium hover:bg-emerald-600 px-3 py-1.5 rounded-lg transition whitespace-nowrap border border-white border-opacity-40"
                   >
-                    내역
+                    📊 내역
                   </Link>
                   <Link
                     href="/kiosk/shop"
-                    className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-1 rounded transition"
+                    className="text-xs text-white font-medium hover:bg-emerald-600 px-3 py-1.5 rounded-lg transition whitespace-nowrap border border-white border-opacity-40"
                   >
-                    상점
+                    🛒 상점
                   </Link>
                 </div>
               </div>
 
               {/* 출석 버튼 */}
-              <div>
+              <div className="flex flex-col justify-center">
                 {todayAttendance ? (
-                  <div className="text-center">
-                    <div className="bg-green-50 text-green-700 border-2 border-green-200 px-6 py-3 rounded-xl font-bold text-sm">
-                      ✅ 출석 완료
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {todayAttendance.time.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                  <div className="bg-green-50 text-green-700 border-2 border-green-200 px-6 py-3 rounded-xl font-bold text-sm text-center">
+                    <div>✅ 출석 완료</div>
+                    <p className="text-xs text-gray-500 mt-1 font-normal">
+                      오늘 {todayAttendance.time.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 ) : (
                   <button
                     onClick={() => setShowAttendanceModal(true)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm transition shadow-md"
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm transition shadow-md h-full"
                   >
                     📸 출석하기
                   </button>
                 )}
               </div>
-
-              {/* 로그아웃 */}
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-3 rounded-xl hover:bg-red-600 transition text-sm shadow-md font-medium"
-              >
-                로그아웃
-              </button>
             </div>
           </div>
         </div>
@@ -553,6 +580,124 @@ export default function StudentDashboardPage() {
 
         {/* 출석 기록 섹션 */}
         <div className="space-y-6">
+          {/* 나의 목표 + 최근 감정 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* 나의 목표 */}
+            <Link href="/student/goals">
+              <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+                <h3 className="text-xl font-bold mb-4 text-gray-800">🎯 나의 목표</h3>
+                {activeGoals.length > 0 ? (
+                  <div className="space-y-3">
+                    {activeGoals.slice(0, 2).map((goal) => {
+                      const progress = Math.round((goal.currentCount / goal.targetCount) * 100);
+                      return (
+                        <div key={goal.id} className="p-3 bg-purple-50 rounded-lg">
+                          <p className="text-sm font-semibold text-purple-800">{goal.title}</p>
+                          <div className="mt-2 bg-purple-200 rounded-full h-2">
+                            <div
+                              className="bg-purple-500 h-2 rounded-full"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-purple-600 mt-1">
+                            {goal.currentCount}/{goal.targetCount} {goal.unit} ({progress}% 달성)
+                          </p>
+                        </div>
+                      );
+                    })}
+                    {activeGoals.length > 2 && (
+                      <p className="text-xs text-center text-gray-500 mt-2">
+                        +{activeGoals.length - 2}개 더 보기
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-gray-500 text-sm mb-2">설정된 목표가 없습니다</p>
+                    <p className="text-xs text-purple-600">클릭하여 목표를 만들어보세요!</p>
+                  </div>
+                )}
+              </div>
+            </Link>
+
+            {/* 최근 감정 */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold mb-4 text-gray-800">😊 최근 감정</h3>
+              {recentEmotions.length === 0 ? (
+                <p className="text-gray-500">아직 출석 기록이 없습니다.</p>
+              ) : (
+                <div className="flex gap-3 flex-wrap">
+                  {recentEmotions.map((emotion, index) => (
+                    <div key={index} className="text-center">
+                      <span className="text-4xl block">{emotionEmojis[emotion]}</span>
+                      <span className="text-xs text-gray-500">{emotionLabels[emotion]}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 나의 순위 + 리더보드 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 나의 순위 */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold mb-4 text-gray-800">🏆 나의 순위</h3>
+              <div className="space-y-4">
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 font-semibold">전체 순위</p>
+                      <p className="text-4xl font-bold text-orange-600">
+                        {myRank > 0 ? `${myRank}위` : '-'}
+                      </p>
+                    </div>
+                    <div className="text-5xl">
+                      {myRank === 1 ? '🥇' : myRank === 2 ? '🥈' : myRank === 3 ? '🥉' : '🏅'}
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 font-semibold mb-1">내 포인트</p>
+                  <p className="text-3xl font-bold text-yellow-600">{student.points || 0} XP</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 리더보드 */}
+            <Link href="/student/leaderboard">
+              <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+                <h3 className="text-xl font-bold mb-4 text-gray-800">👑 리더보드</h3>
+                {leaderboard.length > 0 ? (
+                  <div className="space-y-2">
+                    {leaderboard.slice(0, 5).map((student, index) => (
+                      <div
+                        key={student.id}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 text-center font-bold text-gray-700">
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">{student.name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-yellow-600">{student.points || 0} XP</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-gray-500 text-sm">리더보드 정보가 없습니다</p>
+                  </div>
+                )}
+              </div>
+            </Link>
+          </div>
+
           {/* 출석 기록 테이블 */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-xl font-bold mb-4 text-gray-800">📊 출석 기록</h3>
@@ -617,51 +762,6 @@ export default function StudentDashboardPage() {
                 </table>
               </div>
             )}
-          </div>
-
-          {/* 나의 목표 + 최근 감정 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 나의 목표 */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">🎯 나의 목표</h3>
-              <div className="space-y-3">
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm font-semibold text-green-800">매일 출석하기</p>
-                  <div className="mt-2 bg-green-200 rounded-full h-2">
-                    <div
-                      className="bg-green-500 h-2 rounded-full"
-                      style={{ width: `${attendanceRate}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-green-600 mt-1">{attendanceRate}% 달성</p>
-                </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm font-semibold text-blue-800">
-                    긍정적인 감정 유지하기
-                  </p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    최근 7일간 감정 기록을 확인해보세요!
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 최근 감정 */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">😊 최근 감정</h3>
-              {recentEmotions.length === 0 ? (
-                <p className="text-gray-500">아직 출석 기록이 없습니다.</p>
-              ) : (
-                <div className="flex gap-3 flex-wrap">
-                  {recentEmotions.map((emotion, index) => (
-                    <div key={index} className="text-center">
-                      <span className="text-4xl block">{emotionEmojis[emotion]}</span>
-                      <span className="text-xs text-gray-500">{emotionLabels[emotion]}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </div>
 

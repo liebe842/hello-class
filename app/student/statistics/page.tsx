@@ -322,16 +322,16 @@ export default function StudentStatisticsPage() {
           <h2 className="text-xl font-bold mb-4">🎯 전체 풀이 통계</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <div className="text-sm mb-1">총 풀이한 문제</div>
-              <div className="text-3xl font-bold">{totalAnswered}개</div>
+              <div className="text-sm mb-1 text-purple-900">총 풀이한 문제</div>
+              <div className="text-3xl font-bold text-purple-900">{totalAnswered}개</div>
             </div>
             <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <div className="text-sm mb-1">맞힌 문제</div>
-              <div className="text-3xl font-bold">{totalCorrect}개</div>
+              <div className="text-sm mb-1 text-purple-900">맞힌 문제</div>
+              <div className="text-3xl font-bold text-purple-900">{totalCorrect}개</div>
             </div>
             <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <div className="text-sm mb-1">정답률</div>
-              <div className="text-3xl font-bold">
+              <div className="text-sm mb-1 text-purple-900">정답률</div>
+              <div className="text-3xl font-bold text-purple-900">
                 {totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0}%
               </div>
             </div>
