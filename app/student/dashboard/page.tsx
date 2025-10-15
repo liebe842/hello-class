@@ -269,25 +269,6 @@ export default function StudentDashboardPage() {
   const todayStr = getTodayString();
   const todayAttendance = attendanceData.find(a => a.date === todayStr);
 
-  // 디버깅: 콘솔에 출력
-  if (typeof window !== 'undefined') {
-    console.log('=== 출석 체크 디버깅 ===');
-    console.log('오늘 날짜:', todayStr);
-    console.log('내 학생 ID:', student?.id);
-    console.log('출석 데이터 개수:', attendanceData.length);
-    attendanceData.forEach((a, idx) => {
-      console.log(`출석 ${idx + 1}:`, {
-        date: a.date,
-        studentId: a.studentId,
-        일치여부: a.date === todayStr ? '✅ 일치' : '❌ 불일치',
-        날짜타입: typeof a.date,
-        날짜값: JSON.stringify(a.date)
-      });
-    });
-    console.log('오늘 출석 여부:', todayAttendance ? '✅ 출석 완료' : '❌ 미출석');
-    console.log('====================');
-  }
-
   // 출석 제출
   const handleSubmitAttendance = async () => {
     if (!selectedEmotion || !capturedImage || !student) {
