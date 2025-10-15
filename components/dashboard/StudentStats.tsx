@@ -14,13 +14,8 @@ interface StudentStatsProps {
 export default function StudentStats({ stats }: StudentStatsProps) {
   return (
     <div className="bg-white rounded-xl shadow-md p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-gray-800">학생 순위</h3>
-        <select className="text-sm border border-gray-300 rounded-lg px-3 py-1 text-gray-800 font-medium">
-          <option>포인트</option>
-          <option>과제</option>
-          <option>출석</option>
-        </select>
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-gray-800">학생 순위 (포인트)</h3>
       </div>
 
       <div className="space-y-4 max-h-64 overflow-y-auto pr-2">

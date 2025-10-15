@@ -20,14 +20,8 @@ export default function AttendanceChart({ present, absent, total }: AttendanceCh
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4">
         <h3 className="text-lg font-bold text-gray-800">출석 현황</h3>
-        <select className="text-sm border border-gray-300 rounded-lg px-3 py-1 text-gray-800 font-medium">
-          <option>전체 반</option>
-          <option>1반</option>
-          <option>2반</option>
-          <option>3반</option>
-        </select>
       </div>
 
       <div className="flex items-center justify-center">
