@@ -246,8 +246,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Praise Management */}
-      <div className="mt-8">
+      {/* Praise Management - Hidden */}
+      {/* <div className="mt-8">
         <h2 className="text-xl font-bold text-gray-800 mb-4">칭찬 관리</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <a
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
             <p className="text-xs text-gray-600 mt-1">학생 칭찬 작성</p>
           </a>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
