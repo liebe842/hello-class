@@ -15,7 +15,7 @@ export default function KioskPage() {
   const [currentDate, setCurrentDate] = useState('');
   const [currentDay, setCurrentDay] = useState('');
   const [mealData, setMealData] = useState<MealData | null>(null);
-  const [currentClass, setCurrentClass] = useState('');
+  const [todayClasses, setTodayClasses] = useState<string>('');
   const [attendanceRate, setAttendanceRate] = useState({ present: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -58,29 +58,35 @@ export default function KioskPage() {
         console.error('급식 정보 로드 실패:', err);
       }
 
-      // 현재 교시 계산 및 시간표 가져오기
-      const currentPeriod = getCurrentPeriod();
+      // 오늘 시간표 가져오기
       const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][today.getDay()];
 
-      if (currentPeriod > 0 && dayOfWeek !== '일' && dayOfWeek !== '토') {
+      if (dayOfWeek !== '일' && dayOfWeek !== '토') {
         const timetableSnapshot = await getDocs(collection(db, 'timetable'));
         if (!timetableSnapshot.empty) {
           const timetableData = timetableSnapshot.docs[0].data();
           const schedule = timetableData.schedule || {};
-          const key = `${dayOfWeek}-${currentPeriod}`;
-          const subject = schedule[key];
-          if (subject && subject !== '-') {
-            setCurrentClass(`${currentPeriod}교시 - ${subject}`);
+
+          // 오늘의 모든 교시 수업 가져오기 (1-6교시)
+          const classes = [];
+          for (let period = 1; period <= 6; period++) {
+            const key = `${dayOfWeek}-${period}`;
+            const subject = schedule[key];
+            if (subject && subject !== '-') {
+              classes.push(`${period}교시: ${subject}`);
+            }
+          }
+
+          if (classes.length > 0) {
+            setTodayClasses(classes.join(' / '));
           } else {
-            setCurrentClass('수업 없음');
+            setTodayClasses('수업 없음');
           }
         } else {
-          setCurrentClass('시간표 없음');
+          setTodayClasses('시간표 없음');
         }
-      } else if (dayOfWeek === '일' || dayOfWeek === '토') {
-        setCurrentClass('주말');
       } else {
-        setCurrentClass('수업 전');
+        setTodayClasses('주말');
       }
 
       // 오늘 출석률 계산
@@ -101,31 +107,6 @@ export default function KioskPage() {
       console.error('키오스크 데이터 로드 실패:', error);
       setLoading(false);
     }
-  };
-
-  const getCurrentPeriod = () => {
-    const now = new Date();
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-    const time = hour * 60 + minute;
-
-    // 교시별 시간 (분 단위)
-    const periods = [
-      { period: 1, start: 9 * 60, end: 9 * 60 + 50 },      // 09:00 - 09:50
-      { period: 2, start: 10 * 60, end: 10 * 60 + 50 },    // 10:00 - 10:50
-      { period: 3, start: 11 * 60, end: 11 * 60 + 50 },    // 11:00 - 11:50
-      { period: 4, start: 12 * 60, end: 12 * 60 + 50 },    // 12:00 - 12:50
-      { period: 5, start: 14 * 60, end: 14 * 60 + 50 },    // 14:00 - 14:50
-      { period: 6, start: 15 * 60, end: 15 * 60 + 50 },    // 15:00 - 15:50
-      { period: 7, start: 16 * 60, end: 16 * 60 + 50 },    // 16:00 - 16:50
-    ];
-
-    for (const p of periods) {
-      if (time >= p.start && time < p.end) {
-        return p.period;
-      }
-    }
-    return 0; // 수업 시간 아님
   };
 
   return (
@@ -209,10 +190,10 @@ export default function KioskPage() {
               {loading ? '로딩 중...' : mealData?.lunch || '급식 정보 없음'}
             </p>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">현재 수업</p>
-            <p className="font-semibold text-gray-800">
-              {loading ? '로딩 중...' : currentClass || '수업 정보 없음'}
+          <div className="flex-1 max-w-xl">
+            <p className="text-sm text-gray-600">오늘 시간표</p>
+            <p className="font-semibold text-gray-800 text-sm">
+              {loading ? '로딩 중...' : todayClasses || '시간표 없음'}
             </p>
           </div>
           <div>
