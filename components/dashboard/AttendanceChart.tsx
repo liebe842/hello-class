@@ -52,7 +52,7 @@ export default function AttendanceChart({ present, absent, total }: AttendanceCh
         </div>
       </div>
 
-      <div className="mt-6 flex justify-around">
+      <div className="mt-4 flex justify-around">
         <div className="text-center">
           <div className="flex items-center justify-center mb-1">
             <div className="w-3 h-3 rounded-full bg-blue-600 mr-2"></div>
