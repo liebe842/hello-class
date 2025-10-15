@@ -245,6 +245,37 @@ export default function AdminDashboard() {
           </a>
         </div>
       </div>
+
+      {/* Praise Management */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">칭찬 관리</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <a
+            href="/admin/teacher-praise"
+            className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-md p-6 hover:shadow-lg transition text-center border-2 border-purple-200"
+          >
+            <div className="text-4xl mb-2">💐</div>
+            <p className="font-semibold text-gray-800">선생님 칭찬 확인</p>
+            <p className="text-xs text-gray-600 mt-1">학생들이 보낸 칭찬</p>
+          </a>
+          <a
+            href="/admin/praise-list"
+            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition text-center"
+          >
+            <div className="text-4xl mb-2">📋</div>
+            <p className="font-semibold text-gray-800">전체 칭찬 관리</p>
+            <p className="text-xs text-gray-600 mt-1">모든 칭찬 내역</p>
+          </a>
+          <a
+            href="/admin/praise"
+            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition text-center"
+          >
+            <div className="text-4xl mb-2">✨</div>
+            <p className="font-semibold text-gray-800">칭찬하기</p>
+            <p className="text-xs text-gray-600 mt-1">학생 칭찬 작성</p>
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
