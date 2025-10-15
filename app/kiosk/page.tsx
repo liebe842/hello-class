@@ -3,18 +3,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 interface MealData {
   breakfast: string;
   lunch: string;
   dinner: string;
-}
-
-interface TimetableSlot {
-  period: number;
-  subject: string;
-  teacher: string;
 }
 
 export default function KioskPage() {
@@ -42,33 +36,49 @@ export default function KioskPage() {
   const fetchKioskData = async () => {
     try {
       const today = new Date();
-      const dateString = today.toISOString().split('T')[0];
+      const dateString = today.toISOString().split('T')[0].replace(/-/g, '');
 
-      // 오늘의 급식 가져오기
-      const mealQuery = query(collection(db, 'meals'), where('date', '==', dateString));
-      const mealSnapshot = await getDocs(mealQuery);
-      if (!mealSnapshot.empty) {
-        const meal = mealSnapshot.docs[0].data() as MealData;
-        setMealData(meal);
+      // 오늘의 급식 가져오기 (NEIS API 사용)
+      try {
+        const response = await fetch(`/api/neis/meal?date=${dateString}`);
+        const data = await response.json();
+        if (data.meals && data.meals.length > 0) {
+          // 점심 급식 찾기
+          const lunchMeal = data.meals.find((m: any) => m.mealName === '중식');
+          if (lunchMeal) {
+            // 알레르기 정보 제거하고 간단하게 표시
+            const dishes = lunchMeal.dishName
+              .replace(/<br\/>/g, ', ')
+              .replace(/\([0-9.]+\)/g, '')
+              .trim();
+            setMealData({ breakfast: '', lunch: dishes, dinner: '' });
+          }
+        }
+      } catch (err) {
+        console.error('급식 정보 로드 실패:', err);
       }
 
       // 현재 교시 계산 및 시간표 가져오기
       const currentPeriod = getCurrentPeriod();
-      if (currentPeriod > 0) {
-        const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][today.getDay()];
-        const timetableQuery = query(
-          collection(db, 'timetable'),
-          where('dayOfWeek', '==', dayOfWeek)
-        );
-        const timetableSnapshot = await getDocs(timetableQuery);
+      const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][today.getDay()];
+
+      if (currentPeriod > 0 && dayOfWeek !== '일' && dayOfWeek !== '토') {
+        const timetableSnapshot = await getDocs(collection(db, 'timetable'));
         if (!timetableSnapshot.empty) {
-          const timetable = timetableSnapshot.docs[0].data();
-          const slots = timetable.slots as TimetableSlot[];
-          const currentSlot = slots.find(slot => slot.period === currentPeriod);
-          if (currentSlot) {
-            setCurrentClass(`${currentPeriod}교시 - ${currentSlot.subject}`);
+          const timetableData = timetableSnapshot.docs[0].data();
+          const schedule = timetableData.schedule || {};
+          const key = `${dayOfWeek}-${currentPeriod}`;
+          const subject = schedule[key];
+          if (subject && subject !== '-') {
+            setCurrentClass(`${currentPeriod}교시 - ${subject}`);
+          } else {
+            setCurrentClass('수업 없음');
           }
+        } else {
+          setCurrentClass('시간표 없음');
         }
+      } else if (dayOfWeek === '일' || dayOfWeek === '토') {
+        setCurrentClass('주말');
       } else {
         setCurrentClass('수업 전');
       }
