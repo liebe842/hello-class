@@ -6,6 +6,7 @@ import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import AttendanceChart from '@/components/dashboard/AttendanceChart';
 import StudentStats from '@/components/dashboard/StudentStats';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import AssignmentSubmissionStatus from '@/components/dashboard/AssignmentSubmissionStatus';
 import type { Student, PointHistory } from '@/lib/types';
 
 export default function AdminDashboard() {
@@ -182,10 +183,10 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
-        <div className="lg:col-span-1">
+      {/* Main Content Grid - 2x2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Row 1, Column 1: Attendance */}
+        <div>
           <AttendanceChart
             present={attendanceData.present}
             absent={attendanceData.absent}
@@ -193,13 +194,18 @@ export default function AdminDashboard() {
           />
         </div>
 
-        {/* Middle Column */}
-        <div className="lg:col-span-1">
+        {/* Row 1, Column 2: Assignment Submission */}
+        <div>
+          <AssignmentSubmissionStatus />
+        </div>
+
+        {/* Row 2, Column 1: Student Stats */}
+        <div>
           <StudentStats stats={statsData} />
         </div>
 
-        {/* Right Column */}
-        <div className="lg:col-span-1">
+        {/* Row 2, Column 2: Activity Feed */}
+        <div>
           <ActivityFeed activities={activities} />
         </div>
       </div>

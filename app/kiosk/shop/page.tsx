@@ -152,7 +152,7 @@ export default function KioskShopPage() {
               💰 {student.points}P
             </div>
             <Link
-              href="/kiosk/home"
+              href="/student/dashboard"
               className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition font-semibold"
               style={{ color: '#ffffff' }}
             >

@@ -270,8 +270,8 @@ export default function StudentDashboardPage() {
 
   // 출석 제출
   const handleSubmitAttendance = async () => {
-    if (!selectedEmotion || !capturedImage || !student) {
-      alert('감정을 선택하고 사진을 촬영해주세요.');
+    if (!selectedEmotion || !student) {
+      alert('감정을 선택해주세요.');
       return;
     }
 
@@ -282,61 +282,71 @@ export default function StudentDashboardPage() {
       const dateString = now.toISOString().split('T')[0];
       const timestamp = now.getTime();
 
-      // 이미지 압축 (파일 크기 줄이기)
-      const compressedImage = await new Promise<string>((resolve) => {
-        const img = new window.Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const maxWidth = 800;
-          const maxHeight = 600;
-          let width = img.width;
-          let height = img.height;
+      let photoUrl = '';
 
-          if (width > height) {
-            if (width > maxWidth) {
-              height *= maxWidth / width;
-              width = maxWidth;
+      // 사진이 있을 경우에만 업로드
+      if (capturedImage) {
+        // 이미지 압축 (파일 크기 줄이기)
+        const compressedImage = await new Promise<string>((resolve) => {
+          const img = new window.Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxWidth = 800;
+            const maxHeight = 600;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+              }
             }
-          } else {
-            if (height > maxHeight) {
-              width *= maxHeight / height;
-              height = maxHeight;
-            }
-          }
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
-        };
-        img.src = capturedImage;
-      });
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.src = capturedImage;
+        });
 
-      // Firebase Storage에 사진 업로드 (Blob 방식으로 CORS 우회)
-      const storageRef = ref(storage, `attendance/${dateString}/${student.id}_${timestamp}.jpg`);
+        // Firebase Storage에 사진 업로드 (Blob 방식으로 CORS 우회)
+        const storageRef = ref(storage, `attendance/${dateString}/${student.id}_${timestamp}.jpg`);
 
-      // data URL을 Blob으로 변환
-      const response = await fetch(compressedImage);
-      const blob = await response.blob();
+        // data URL을 Blob으로 변환
+        const response = await fetch(compressedImage);
+        const blob = await response.blob();
 
-      // uploadBytes 사용
-      await uploadBytes(storageRef, blob, {
-        contentType: 'image/jpeg'
-      });
-      const photoUrl = await getDownloadURL(storageRef);
+        // uploadBytes 사용
+        await uploadBytes(storageRef, blob, {
+          contentType: 'image/jpeg'
+        });
+        photoUrl = await getDownloadURL(storageRef);
+      }
 
-      // Firestore에 출석 기록 저장
-      await addDoc(collection(db, 'attendance'), {
+      // Firestore에 출석 기록 저장 (photoUrl은 있을 때만 포함)
+      const attendanceData: any = {
         studentId: student.id,
         studentName: student.name,
         date: dateString,
         time: Timestamp.fromDate(now),
         emotion: selectedEmotion,
-        photoUrl,
         showPhoto,
         createdAt: Timestamp.fromDate(now),
-      });
+      };
+
+      if (photoUrl) {
+        attendanceData.photoUrl = photoUrl;
+      }
+
+      await addDoc(collection(db, 'attendance'), attendanceData);
 
       // 8시 40분 이전 출석 시 포인트 지급 (1P)
       const hour = now.getHours();
@@ -798,7 +808,7 @@ export default function StudentDashboardPage() {
                   1. 감정 선택 {selectedEmotion && '✓'}
                 </span>
                 <span className={`text-sm font-semibold ${capturedImage ? 'text-green-600' : 'text-gray-400'}`}>
-                  2. 사진 촬영 {capturedImage && '✓'}
+                  2. 사진 촬영 (선택) {capturedImage && '✓'}
                 </span>
               </div>
             </div>
@@ -826,7 +836,7 @@ export default function StudentDashboardPage() {
 
             {/* 웹캠 */}
             <div className="mb-6">
-              <h4 className="font-semibold text-gray-700 mb-3">사진 촬영</h4>
+              <h4 className="font-semibold text-gray-700 mb-3">사진 촬영 (선택사항)</h4>
               {!capturedImage ? (
                 <div>
                   <Webcam
@@ -887,7 +897,7 @@ export default function StudentDashboardPage() {
               </button>
               <button
                 onClick={handleSubmitAttendance}
-                disabled={!selectedEmotion || !capturedImage || submitting}
+                disabled={!selectedEmotion || submitting}
                 className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? '출석 중...' : '출석 완료'}
