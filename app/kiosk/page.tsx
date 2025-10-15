@@ -1,6 +1,24 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function KioskPage() {
+  const [currentDate, setCurrentDate] = useState('');
+  const [currentDay, setCurrentDay] = useState('');
+
+  useEffect(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const date = now.getDate();
+    const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const day = days[now.getDay()];
+
+    setCurrentDate(`${year}년 ${month}월 ${date}일`);
+    setCurrentDay(day);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 to-blue-500">
       {/* 상단 바 */}
@@ -8,8 +26,8 @@ export default function KioskPage() {
         <h1 className="text-3xl font-bold text-gray-800">Hello, Class! 🎉</h1>
         <div className="flex gap-4 items-center">
           <div className="text-right">
-            <p className="text-sm text-gray-600">2024년 9월 26일</p>
-            <p className="text-lg font-bold text-gray-800">목요일</p>
+            <p className="text-sm text-gray-600">{currentDate || '로딩 중...'}</p>
+            <p className="text-lg font-bold text-gray-800">{currentDay || '...'}</p>
           </div>
           <Link
             href="/"
