@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import type { Student } from '@/lib/types';
 
 export default function LeaderboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isKioskMode = searchParams?.get('kiosk') === 'true';
   const [leaderboard, setLeaderboard] = useState<Student[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,21 +62,28 @@ export default function LeaderboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-gray-600">로딩 중...</div>
+      <div className={`flex items-center justify-center p-8 ${
+        isKioskMode ? 'min-h-screen bg-gradient-to-br from-green-400 to-blue-500' : ''
+      }`}>
+        <div className={isKioskMode ? 'text-white text-2xl' : 'text-gray-600'}>로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
+    <div className={isKioskMode ? 'min-h-screen bg-gradient-to-br from-green-400 to-blue-500 p-8' : 'p-8'}>
+      {isKioskMode && (
+        <Link href="/kiosk" className="mb-4 inline-block bg-white px-6 py-3 rounded-lg font-semibold text-gray-800 hover:bg-gray-100 transition">
+          ← 돌아가기
+        </Link>
+      )}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">🎯 포인트 리더보드</h1>
-        <p className="text-gray-600 text-sm mt-1">
+        <h1 className={`text-3xl font-bold ${isKioskMode ? 'text-white' : 'text-gray-800'}`}>🎯 포인트 리더보드</h1>
+        <p className={`text-sm mt-1 ${isKioskMode ? 'text-white' : 'text-gray-600'}`}>
           친구들의 포인트 순위를 확인해 보세요. 꾸준한 활동이 높은 순위를
           만들어 줍니다!
         </p>
-        {myRank && (
+        {myRank && !isKioskMode && (
           <div className="mt-3 inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg text-sm font-semibold">
             <span>내 순위</span>
             <span className="text-lg">{getRankBadge(myRank)}</span>
@@ -134,29 +144,31 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        <div className="mt-6 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl p-6 shadow-lg flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h2 className="text-xl font-bold mb-2">포인트를 더 모으고 싶나요?</h2>
-            <p className="text-sm opacity-90">
-              과제를 성실히 제출하고 친구들에게 칭찬을 남기면 포인트가 쑥쑥
-              올라갑니다. 일찍 출석하면 보너스 포인트도 있어요!
-            </p>
+        {!isKioskMode && (
+          <div className="mt-6 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl p-6 shadow-lg flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h2 className="text-xl font-bold mb-2">포인트를 더 모으고 싶나요?</h2>
+              <p className="text-sm opacity-90">
+                과제를 성실히 제출하고 친구들에게 칭찬을 남기면 포인트가 쑥쑥
+                올라갑니다. 일찍 출석하면 보너스 포인트도 있어요!
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => router.push('/student/assignments')}
+                className="bg-white text-purple-600 font-semibold px-4 py-2 rounded-lg shadow hover:bg-purple-100 transition"
+              >
+                과제 보러 가기
+              </button>
+              <button
+                onClick={() => router.push('/student/praise')}
+                className="bg-white text-purple-600 font-semibold px-4 py-2 rounded-lg shadow hover:bg-purple-100 transition"
+              >
+                친구 칭찬하기
+              </button>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => router.push('/student/assignments')}
-              className="bg-white text-purple-600 font-semibold px-4 py-2 rounded-lg shadow hover:bg-purple-100 transition"
-            >
-              과제 보러 가기
-            </button>
-            <button
-              onClick={() => router.push('/student/praise')}
-              className="bg-white text-purple-600 font-semibold px-4 py-2 rounded-lg shadow hover:bg-purple-100 transition"
-            >
-              친구 칭찬하기
-            </button>
-          </div>
-        </div>
+        )}
       </main>
     </div>
   );

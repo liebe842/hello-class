@@ -118,20 +118,21 @@ export default function PlayMiniGamePage() {
       </header>
 
       {/* 게임 영역 */}
-      <main className="container mx-auto px-6 py-8 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+      <main className="flex items-center justify-center px-4 py-4">
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden w-full" style={{ maxWidth: '1400px' }}>
           {/* p5.js 게임 */}
           {game.type === 'p5js' && game.p5Code && (
-            <P5Canvas code={game.p5Code} width={800} height={600} />
+            <P5Canvas code={game.p5Code} width={1400} height={800} />
           )}
 
           {/* 엔트리 게임 */}
           {game.type === 'entry' && game.gameUrl && (
             <iframe
               src={game.gameUrl}
-              width="800"
-              height="600"
+              width="100%"
+              height="800"
               className="border-0"
+              style={{ minWidth: '1400px' }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
@@ -141,9 +142,10 @@ export default function PlayMiniGamePage() {
           {game.type === 'iframe' && game.gameUrl && (
             <iframe
               src={game.gameUrl}
-              width="800"
-              height="600"
+              width="100%"
+              height="800"
               className="border-0"
+              style={{ minWidth: '1400px' }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />

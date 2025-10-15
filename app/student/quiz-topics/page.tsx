@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
@@ -9,6 +9,8 @@ import type { QuizTopic, QuizAttempt } from '@/lib/types';
 
 export default function StudentQuizTopicsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isKioskMode = searchParams?.get('kiosk') === 'true';
   const [topics, setTopics] = useState<QuizTopic[]>([]);
   const [quizCounts, setQuizCounts] = useState<{ [key: string]: number }>({});
   const [myQuizCounts, setMyQuizCounts] = useState<{ [key: string]: number }>({});
@@ -118,17 +120,24 @@ export default function StudentQuizTopicsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-gray-800 text-2xl">로딩 중...</div>
+      <div className={`flex items-center justify-center ${isKioskMode ? 'min-h-screen bg-gradient-to-br from-green-400 to-blue-500' : ''} p-8`}>
+        <div className={`${isKioskMode ? 'text-white' : 'text-gray-800'} text-2xl`}>로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
+    <div className={isKioskMode ? 'min-h-screen bg-gradient-to-br from-green-400 to-blue-500 p-8' : 'p-8'}>
+      {/* 키오스크 모드 뒤로가기 버튼 */}
+      {isKioskMode && (
+        <Link href="/kiosk" className="mb-4 inline-block bg-white px-6 py-3 rounded-lg font-semibold text-gray-800 hover:bg-gray-100 transition">
+          ← 돌아가기
+        </Link>
+      )}
+
       {/* 헤더 */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">🎯 퀴즈 주제</h1>
+        <h1 className={`text-3xl font-bold ${isKioskMode ? 'text-white' : 'text-gray-800'}`}>🎯 퀴즈 주제</h1>
       </div>
 
       {/* 메인 콘텐츠 */}

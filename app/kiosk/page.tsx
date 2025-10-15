@@ -40,22 +40,28 @@ export default function KioskPage() {
           </Link>
 
           {/* 오늘의 퀴즈 */}
-          <button className="bg-white rounded-3xl shadow-2xl p-12 hover:scale-105 transition-all">
-            <div className="text-8xl mb-6">❓</div>
-            <h2 className="text-3xl font-bold text-gray-800">오늘의 퀴즈</h2>
-          </button>
+          <Link href="/student/quiz-topics?kiosk=true">
+            <button className="bg-white rounded-3xl shadow-2xl p-12 hover:scale-105 transition-all w-full">
+              <div className="text-8xl mb-6">❓</div>
+              <h2 className="text-3xl font-bold text-gray-800">오늘의 퀴즈</h2>
+            </button>
+          </Link>
 
-          {/* 학교 공지사항 */}
-          <button className="bg-white rounded-3xl shadow-2xl p-12 hover:scale-105 transition-all">
-            <div className="text-8xl mb-6">📢</div>
-            <h2 className="text-3xl font-bold text-gray-800">학교 공지</h2>
-          </button>
+          {/* 학급 정보 */}
+          <Link href="/kiosk/classes">
+            <button className="bg-white rounded-3xl shadow-2xl p-12 hover:scale-105 transition-all w-full">
+              <div className="text-8xl mb-6">📚</div>
+              <h2 className="text-3xl font-bold text-gray-800">학급 정보</h2>
+            </button>
+          </Link>
 
-          {/* 학급 소식 */}
-          <button className="bg-white rounded-3xl shadow-2xl p-12 hover:scale-105 transition-all">
-            <div className="text-8xl mb-6">📰</div>
-            <h2 className="text-3xl font-bold text-gray-800">학급 소식</h2>
-          </button>
+          {/* 리더보드 */}
+          <Link href="/student/leaderboard?kiosk=true">
+            <button className="bg-white rounded-3xl shadow-2xl p-12 hover:scale-105 transition-all w-full">
+              <div className="text-8xl mb-6">🏆</div>
+              <h2 className="text-3xl font-bold text-gray-800">리더보드</h2>
+            </button>
+          </Link>
 
           {/* 미니게임 */}
           <Link href="/kiosk/minigames">
