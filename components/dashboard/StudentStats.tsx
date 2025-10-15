@@ -13,12 +13,12 @@ interface StudentStatsProps {
 
 export default function StudentStats({ stats }: StudentStatsProps) {
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
+    <div className="bg-white rounded-xl shadow-md p-6 h-[500px] flex flex-col">
       <div className="mb-6">
         <h3 className="text-lg font-bold text-gray-800">학생 순위 (포인트)</h3>
       </div>
 
-      <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+      <div className="space-y-4 flex-1 overflow-y-auto pr-2">
         {stats.map((stat, index) => {
           const percentage = stat.max > 0 ? (stat.value / stat.max) * 100 : 0;
 

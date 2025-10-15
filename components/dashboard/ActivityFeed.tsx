@@ -41,7 +41,7 @@ export default function ActivityFeed({ activities }: ActivityFeedProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
+    <div className="bg-white rounded-xl shadow-md p-6 h-[500px] flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold text-gray-800">최근 활동</h3>
         <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
@@ -49,7 +49,7 @@ export default function ActivityFeed({ activities }: ActivityFeedProps) {
         </button>
       </div>
 
-      <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+      <div className="space-y-4 flex-1 overflow-y-auto pr-2">
         {activities.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500">최근 활동이 없습니다.</p>

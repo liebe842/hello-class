@@ -19,7 +19,7 @@ export default function AttendanceChart({ present, absent, total }: AttendanceCh
   const COLORS = ['#4e73df', '#e8eaf6'];
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
+    <div className="bg-white rounded-xl shadow-md p-6 h-[500px] flex flex-col">
       <div className="mb-4">
         <h3 className="text-lg font-bold text-gray-800">출석 현황</h3>
       </div>
